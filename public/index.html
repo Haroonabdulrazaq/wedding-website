@@ -1049,7 +1049,7 @@ function activateStream(link){
   const ytMatch=link.match(/(?:youtube\.com\/(?:watch\?.*v=|live\/|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/i);
   if(ytMatch){
     youtubeVideoId=ytMatch[1];
-    embedUrl='https://www.youtube.com/embed/'+youtubeVideoId+'?autoplay=1&rel=0&modestbranding=1&playsinline=1';
+    embedUrl='https://www.youtube-nocookie.com/embed/'+youtubeVideoId+'?autoplay=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin='+encodeURIComponent(location.origin);
     isYouTube=true; platformName='YouTube';
   }
   /* ── Facebook Live & Videos ── */
@@ -1085,15 +1085,31 @@ function activateStream(link){
   if(embedUrl){
     f.src=embedUrl; f.classList.add('active');
     ext.classList.remove('show');
-    /* YouTube: add "Open in YouTube" button */
+    /* YouTube: add fallback + "Open in YouTube" button */
     if(isYouTube && youtubeVideoId){
-      if(document.getElementById('youtubeFallbackLink')) document.getElementById('youtubeFallbackLink').href='https://www.youtube.com/watch?v='+youtubeVideoId;
+      const ytUrl='https://www.youtube.com/watch?v='+youtubeVideoId;
+      if(document.getElementById('youtubeFallbackLink')) document.getElementById('youtubeFallbackLink').href=ytUrl;
+      /* Auto-show fallback if embed fails (Error 150/153) */
+      f.onerror=function(){if(ytFallback)ytFallback.classList.add('show');};
+      /* Also detect embed failure via postMessage (YouTube sends errors this way) */
+      const ytErrHandler=function(e){
+        if(e.origin&&e.origin.indexOf('youtube')>-1&&e.data&&typeof e.data==='string'&&(e.data.indexOf('error')>-1||e.data.indexOf('150')>-1||e.data.indexOf('153')>-1)){
+          if(ytFallback)ytFallback.classList.add('show');
+          window.removeEventListener('message',ytErrHandler);
+        }
+      };
+      window.addEventListener('message',ytErrHandler);
+      /* Show fallback after 8s if iframe hasn't loaded (catches silent embed failures) */
+      setTimeout(function(){
+        try{if(f.contentWindow&&f.contentWindow.document&&f.contentWindow.document.body&&f.contentWindow.document.body.innerHTML==='')if(ytFallback)ytFallback.classList.add('show');}
+        catch(e){if(ytFallback)ytFallback.classList.add('show');}
+      },8000);
       const controls=document.querySelector('.player-controls .pc-left');
       if(controls && !document.getElementById('openYtBtn')){
         const ytBtn=document.createElement('button');
         ytBtn.className='pc-btn'; ytBtn.id='openYtBtn';
         ytBtn.innerHTML='📺 Open in YouTube';
-        ytBtn.onclick=()=>window.open('https://www.youtube.com/watch?v='+youtubeVideoId,'_blank');
+        ytBtn.onclick=()=>window.open(ytUrl,'_blank');
         controls.appendChild(ytBtn);
       }
     }

@@ -513,7 +513,7 @@ function getEmbedUrl(link){
   if(!link)return null;
   var m;
   /* YouTube: watch, live, embed, shorts, short URLs */
-  if(m=link.match(/(?:youtube\.com\/(?:watch\?.*v=|live\/|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/i))return 'https://www.youtube.com/embed/'+m[1]+'?autoplay=1&rel=0&modestbranding=1';
+  if(m=link.match(/(?:youtube\.com\/(?:watch\?.*v=|live\/|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/i))return 'https://www.youtube-nocookie.com/embed/'+m[1]+'?autoplay=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin='+encodeURIComponent(location.origin);
   /* Facebook Live & Videos */
   if(/facebook\.com.*(\/videos\/|\/live\/?)/i.test(link))return 'https://www.facebook.com/plugins/video.php?href='+encodeURIComponent(link)+'&autoplay=1&mute=0&show_text=0';
   /* Vimeo (including events) */
