@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin — Hawau &amp; Lukman Wedding</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A1A0C;--bg2:#0F2012;--bg3:#152819;--bg4:#1C3522;
+  --gold:#C49E50;--gold2:#DDB860;--gold3:#F0D080;
+  --teal:#0F7A6A;--teal2:#18A895;--teal3:#3DD4C8;
+  --red:#E05050;--green:#3CB371;
+  --text:rgba(242,234,216,.92);--muted:rgba(242,234,216,.42);
+  --border:rgba(196,158,80,.15);--border2:rgba(196,158,80,.3);
+  --r:4px;--dur:.22s;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:'Jost',sans-serif;background:var(--bg);color:var(--text)}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:inherit}
+input,textarea,select{font-family:inherit}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+#loginScreen{position:fixed;inset:0;z-index:999;background:radial-gradient(ellipse at 50% 30%,var(--bg3),var(--bg));display:flex;align-items:center;justify-content:center;padding:20px}
+#loginScreen.gone{display:none}
+.login-box{background:rgba(0,0,0,.45);border:1px solid var(--border2);padding:44px;max-width:400px;width:100%;text-align:center;position:relative}
+.login-box::before{content:'';position:absolute;top:0;inset-inline:0;height:2px;background:linear-gradient(to right,transparent,var(--gold2),transparent)}
+.login-logo{font-family:'Cinzel',serif;font-size:1.5rem;letter-spacing:4px;background:linear-gradient(135deg,var(--gold),var(--gold3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}
+.login-sub{font-size:.7rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:32px}
+.lf{margin-bottom:16px;text-align:left}
+.lf label{font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold3);display:block;margin-bottom:6px}
+.lf input{width:100%;background:rgba(0,0,0,.4);border:1px solid var(--border);color:var(--text);padding:12px 14px;font-size:.9rem;outline:none;border-radius:var(--r);transition:border-color var(--dur)}
+.lf input:focus{border-color:var(--gold)}
+.pw-wrap{position:relative}.pw-wrap input{padding-right:44px}
+.pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:2px;transition:color var(--dur)}
+.pw-eye:hover{color:var(--gold3)}
+.login-btn{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--bg);border:none;padding:13px;font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:3px;font-weight:600;border-radius:var(--r);margin-top:6px;transition:all var(--dur);display:flex;align-items:center;justify-content:center;gap:8px}
+.login-btn:hover:not(:disabled){filter:brightness(1.1);transform:translateY(-1px)}
+.login-btn:disabled{opacity:.7;cursor:not-allowed;transform:none}
+.login-btn .sp{display:none;width:14px;height:14px;border:2px solid rgba(15,26,15,.3);border-top-color:var(--bg);border-radius:50%;animation:spin .7s linear infinite}
+.login-btn.loading .sp{display:inline-block}.login-btn.loading .bt{opacity:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.login-err{min-height:22px;margin-top:12px;font-size:.82rem;color:var(--red);line-height:1.5}
+.login-hint{margin-top:16px;font-size:.7rem;color:var(--muted);line-height:1.7;background:rgba(0,0,0,.2);padding:10px 14px;border-radius:var(--r);border:1px solid var(--border);text-align:left}
+#app{display:none;height:100%;flex-direction:column}#app.visible{display:flex}
+#topbar{height:54px;flex-shrink:0;background:rgba(10,26,12,.96);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:12px}
+.tb-burger{display:none;background:none;border:none;color:var(--gold3);font-size:1.4rem;padding:4px;margin-right:4px}
+.tb-logo{font-family:'Cinzel',serif;font-size:.88rem;letter-spacing:3px;background:linear-gradient(135deg,var(--gold),var(--gold3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.tb-status{display:flex;align-items:center;gap:7px;font-size:.64rem;letter-spacing:2px;text-transform:uppercase}
+.tb-dot{width:8px;height:8px;border-radius:50%;background:#555;flex-shrink:0}
+.tb-dot.waiting{background:var(--gold);animation:pulse 2s ease infinite}
+.tb-dot.live{background:var(--red);animation:pulse 1.4s ease infinite}
+.tb-dot.ended{background:var(--green)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.tb-space{flex:1}
+#tbViewers{font-size:.66rem;color:var(--teal3);margin-right:10px}
+.tb-site{font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--teal3);border:1px solid rgba(61,212,200,.25);padding:6px 13px;border-radius:var(--r);transition:all var(--dur);white-space:nowrap}
+.tb-site:hover{background:rgba(61,212,200,.07)}
+.tb-out{background:none;border:none;font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:6px 12px;transition:color var(--dur);white-space:nowrap}
+.tb-out:hover{color:var(--red)}
+#shell{flex:1;display:flex;overflow:hidden}
+.sb-back{display:none;position:fixed;inset:0;z-index:89;background:rgba(0,0,0,.6)}.sb-back.show{display:block}
+#sidebar{width:214px;flex-shrink:0;background:rgba(0,0,0,.32);border-right:1px solid var(--border);overflow-y:auto;padding:14px 0;transition:transform var(--dur)}
+.sb-sec{font-size:.52rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);padding:10px 16px 4px;margin-top:8px}
+.sb-a{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:.8rem;color:var(--muted);transition:all var(--dur);border-left:2px solid transparent;cursor:pointer;user-select:none}
+.sb-a:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.sb-a.on{color:var(--gold3);border-left-color:var(--gold);background:rgba(196,158,80,.06)}
+.sb-ico{font-size:.95rem;width:20px;text-align:center}
+.sb-badge{margin-left:auto;background:var(--teal);color:#fff;font-size:.52rem;padding:1px 6px;border-radius:10px;min-width:20px;text-align:center}
+#main{flex:1;overflow-y:auto;padding:22px;background:var(--bg)}
+.panel{display:none}.panel.on{display:block}
+.ptitle{font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:4px;text-transform:uppercase;color:var(--gold3);margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.card{background:rgba(0,0,0,.3);border:1px solid var(--border);padding:20px;margin-bottom:14px;border-radius:2px}
+.ctitle{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold3);margin-bottom:14px}
+.srow{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px}
+.sbox{background:rgba(0,0,0,.3);border:1px solid var(--border);padding:16px;text-align:center;border-radius:2px}
+.sn{font-family:'Cinzel',serif;font-size:2rem;color:var(--teal3);display:block;line-height:1;text-shadow:0 0 18px rgba(61,212,200,.3)}
+.sl{font-size:.54rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);display:block;margin-top:4px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fld{margin-bottom:12px}
+.fld label{display:block;font-size:.57rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.fld input,.fld textarea,.fld select{width:100%;background:rgba(0,0,0,.4);border:1px solid var(--border);color:var(--text);padding:9px 12px;font-size:.86rem;outline:none;border-radius:var(--r);transition:border-color var(--dur)}
+.fld input:focus,.fld textarea:focus,.fld select:focus{border-color:var(--gold)}
+.fld textarea{resize:none;line-height:1.6}
+.btn{display:inline-flex;align-items:center;gap:6px;font-family:'Cinzel',serif;font-size:.56rem;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;border:none;border-radius:var(--r);transition:all var(--dur);cursor:pointer}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.btn-g{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff}
+.btn-g:hover:not(:disabled){filter:brightness(1.1);transform:translateY(-1px)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--bg);font-weight:600}
+.btn-gold:hover:not(:disabled){filter:brightness(1.1);transform:translateY(-1px)}
+.btn-r{background:rgba(224,80,80,.14);border:1px solid rgba(224,80,80,.28);color:rgba(255,110,110,.85)}
+.btn-r:hover{background:rgba(224,80,80,.24)}
+.btn-o{background:transparent;border:1px solid var(--border2);color:var(--gold)}
+.btn-o:hover{background:rgba(196,158,80,.08)}
+.btn-sm{padding:5px 11px;font-size:.5rem}
+.btn-full{width:100%;justify-content:center}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border)}
+.tog-row:last-child{border:none}
+.tog-lbl{font-size:.8rem;color:var(--text)}
+.tog-desc{font-size:.7rem;color:var(--muted);margin-top:2px}
+.tog{position:relative;width:40px;height:22px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.tog-sl{position:absolute;inset:0;background:rgba(255,255,255,.1);border:1px solid var(--border);border-radius:11px;transition:all var(--dur);cursor:pointer}
+.tog-sl::before{content:'';position:absolute;width:16px;height:16px;background:#555;border-radius:50%;top:2px;left:2px;transition:all var(--dur)}
+.tog input:checked + .tog-sl{background:var(--teal);border-color:var(--teal2)}
+.tog input:checked + .tog-sl::before{background:#fff;transform:translateX(18px)}
+.live-card{background:rgba(15,122,106,.1);border:1px solid rgba(61,212,200,.2);padding:20px;margin-bottom:14px;position:relative;overflow:hidden;border-radius:2px}
+.live-card::before{content:'';position:absolute;top:0;inset-inline:0;height:2px;background:linear-gradient(to right,transparent,var(--teal2),transparent)}
+.lc-row{display:flex;gap:8px;margin-bottom:10px}
+.lc-inp{flex:1;background:rgba(0,0,0,.4);border:1px solid rgba(61,212,200,.22);color:var(--text);padding:10px 13px;font-size:.86rem;outline:none;border-radius:var(--r);min-width:0;transition:border-color var(--dur)}
+.lc-inp:focus{border-color:var(--teal3)}.lc-inp::placeholder{color:var(--muted)}
+.tbl-search{width:100%;background:rgba(0,0,0,.4);border:1px solid var(--border);color:var(--text);padding:9px 13px;font-size:.84rem;outline:none;border-radius:var(--r);margin-bottom:12px;transition:border-color var(--dur)}
+.tbl-search:focus{border-color:var(--gold)}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+th{font-family:'Cinzel',serif;font-size:.5rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);background:rgba(0,0,0,.2)}
+td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top}
+tr:hover td{background:rgba(255,255,255,.02)}
+.badge{font-size:.52rem;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:10px}
+.b-virt{background:rgba(61,212,200,.1);color:var(--teal3);border:1px solid rgba(61,212,200,.18)}
+.b-phys{background:rgba(196,158,80,.1);color:var(--gold3);border:1px solid rgba(196,158,80,.18)}
+.b-reg{background:rgba(150,150,150,.08);color:var(--muted);border:1px solid rgba(150,150,150,.15)}
+.msg-p{font-size:.82rem;color:var(--muted);font-style:italic;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rbar{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.rbar-emoji{font-size:1.2rem;width:26px;text-align:center}
+.rbar-track{flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden}
+.rbar-fill{height:100%;background:linear-gradient(to right,var(--teal),var(--teal3));border-radius:4px;transition:width .5s ease}
+.rbar-n{font-family:'Cinzel',serif;font-size:.64rem;color:var(--teal3);min-width:32px;text-align:right}
+.rsvp-band{display:flex;flex-direction:column;gap:8px}
+.rsvp-brow{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;background:rgba(0,0,0,.2);border-radius:3px;border:1px solid var(--border)}
+.rsvp-brow-lbl{font-size:.84rem;text-transform:capitalize;color:var(--text)}
+.rsvp-brow-val{font-family:'Cinzel',serif;font-size:.82rem;color:var(--teal3)}
+.stream-preview{background:rgba(0,0,0,.5);border:1px solid var(--border);border-radius:var(--r);margin-top:14px;overflow:hidden}
+.stream-preview-header{background:rgba(0,0,0,.3);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.stream-preview-header span{font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+.stream-preview iframe{width:100%;height:340px;border:none;background:#000}
+.stream-preview-empty{padding:60px 20px;text-align:center;color:var(--muted);font-size:.88rem}
+.bc-history{margin-top:14px;max-height:200px;overflow-y:auto}
+.bc-item{padding:8px 12px;border-left:2px solid var(--gold);margin-bottom:6px;background:rgba(0,0,0,.15);border-radius:0 var(--r) var(--r) 0}
+.bc-item-msg{font-size:.84rem;color:var(--text)}.bc-item-time{font-size:.64rem;color:var(--muted);margin-top:2px}
+.conn-badge{display:inline-flex;align-items:center;gap:5px;font-size:.56rem;letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;border-radius:10px;margin-left:8px}
+.conn-badge.connected{background:rgba(60,179,113,.12);color:var(--green);border:1px solid rgba(60,179,113,.25)}
+.conn-badge.disconnected{background:rgba(224,80,80,.12);color:var(--red);border:1px solid rgba(224,80,80,.25)}
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-state-icon{font-size:2.4rem;margin-bottom:10px;opacity:.5}
+.empty-state-text{font-size:.88rem}
+.loading-spinner{display:flex;align-items:center;justify-content:center;padding:30px}
+.loading-spinner::after{content:'';width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--teal3);border-radius:50%;animation:spin .7s linear infinite}
+@media(max-width:768px){.g2{grid-template-columns:1fr}.srow{grid-template-columns:1fr 1fr}.stream-preview iframe{height:220px}}
+@media(max-width:580px){#sidebar{position:fixed;inset:54px auto 0 0;z-index:90;transform:translateX(-220px)}#sidebar.open{transform:translateX(0)}.tb-burger{display:block}#main{padding:12px}.lc-row{flex-direction:column}.stream-preview iframe{height:180px}}
+</style>
+</head>
+<body>
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">H &amp; L</div>
+    <div class="login-sub">Wedding Admin Panel</div>
+    <div class="lf"><label for="lUser">Username</label><input id="lUser" type="text" placeholder="Enter username" autocomplete="username" onkeydown="if(event.key==='Enter')login()"></div>
+    <div class="lf"><label for="lPass">Password</label><div class="pw-wrap"><input id="lPass" type="password" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()"><button class="pw-eye" onclick="togglePw()" id="pwEye" type="button" aria-label="Toggle password visibility">&#128065;</button></div></div>
+    <button class="login-btn" id="loginBtn" onclick="login()" type="button"><span class="sp"></span><span class="bt">&#128274; &nbsp; Sign In</span></button>
+    <div class="login-err" id="loginErr" role="alert"></div>
+    <div class="login-hint">Please contact the site administrator if you need access credentials.</div>
+  </div>
+</div>
+<div id="app">
+  <div id="topbar">
+    <button class="tb-burger" onclick="toggleSB()" type="button" aria-label="Toggle sidebar">&#9776;</button>
+    <span class="tb-logo">Wedding Admin</span>
+    <div class="tb-status" style="margin-left:12px"><span class="tb-dot waiting" id="tbDot"></span><span id="tbStatus">Loading&hellip;</span></div>
+    <span class="conn-badge disconnected" id="connBadge">&#9679; Connecting</span>
+    <span class="tb-space"></span>
+    <span id="tbViewers">&#128065; 0</span>
+    <a href="/" target="_blank" class="tb-site">&#127760; View Site</a>
+    <button class="tb-out" onclick="logout()" type="button">Sign Out</button>
+  </div>
+  <div id="shell">
+    <div class="sb-back" id="sbBack" onclick="closeSB()"></div>
+    <nav id="sidebar">
+      <div class="sb-sec">Stream</div>
+      <div class="sb-a on" onclick="show('overview')" data-p="overview"><span class="sb-ico">&#128202;</span>Overview</div>
+      <div class="sb-a" onclick="show('stream')" data-p="stream"><span class="sb-ico">&#127909;</span>Stream Control</div>
+      <div class="sb-a" onclick="show('broadcast')" data-p="broadcast"><span class="sb-ico">&#128226;</span>Broadcast</div>
+      <div class="sb-sec">Content</div>
+      <div class="sb-a" onclick="show('rsvp')" data-p="rsvp"><span class="sb-ico">&#128140;</span>RSVP<span class="sb-badge" id="badgeRsvp">0</span></div>
+      <div class="sb-a" onclick="show('guestbook')" data-p="guestbook"><span class="sb-ico">&#9997;&#65039;</span>Guest Book<span class="sb-badge" id="badgeGb">0</span></div>
+      <div class="sb-a" onclick="show('blessings')" data-p="blessings"><span class="sb-ico">&#129330;</span>Blessings<span class="sb-badge" id="badgeBless">0</span></div>
+      <div class="sb-a" onclick="show('chat')" data-p="chat"><span class="sb-ico">&#128172;</span>Chat Log</div>
+      <div class="sb-sec">Settings</div>
+      <div class="sb-a" onclick="show('settings')" data-p="settings"><span class="sb-ico">&#9881;&#65039;</span>Site Settings</div>
+      <div class="sb-a" onclick="show('analytics')" data-p="analytics"><span class="sb-ico">&#128200;</span>Analytics</div>
+    </nav>
+    <main id="main">
+      <!-- OVERVIEW -->
+      <div class="panel on" id="p-overview">
+        <div class="ptitle">Dashboard Overview</div>
+        <div class="srow">
+          <div class="sbox"><span class="sn" id="ov-v">0</span><span class="sl">Live Viewers</span></div>
+          <div class="sbox"><span class="sn" id="ov-r">0</span><span class="sl">RSVPs</span></div>
+          <div class="sbox"><span class="sn" id="ov-g">0</span><span class="sl">Guest Book</span></div>
+          <div class="sbox"><span class="sn" id="ov-b">0</span><span class="sl">Blessings</span></div>
+          <div class="sbox"><span class="sn" id="ov-rx">0</span><span class="sl">Reactions</span></div>
+          <div class="sbox"><span class="sn" id="ov-c">0</span><span class="sl">Chat Msgs</span></div>
+        </div>
+        <div class="g2">
+          <div class="card"><div class="ctitle">&#127909; Stream Status</div><div id="ov-status" style="font-size:.9rem;color:var(--muted);margin-bottom:12px">Loading&hellip;</div><div id="ov-link" style="font-size:.76rem;color:var(--teal3);word-break:break-all;margin-bottom:12px"></div><button class="btn btn-g btn-sm" onclick="show('stream')" type="button">Manage Stream &rarr;</button></div>
+          <div class="card"><div class="ctitle">&#128202; RSVP Breakdown</div><div id="ov-rsvp-bd" class="rsvp-band"><span style="color:var(--muted);font-size:.82rem">Loading&hellip;</span></div></div>
+        </div>
+        <div class="card"><div class="ctitle">&#128578; Reactions</div><div id="ov-react-bars"><span style="color:var(--muted);font-size:.82rem">Loading&hellip;</span></div></div>
+      </div>
+      <!-- STREAM CONTROL -->
+      <div class="panel" id="p-stream">
+        <div class="ptitle">Stream Control</div>
+        <div class="live-card">
+          <div style="font-family:Cinzel,serif;font-size:.62rem;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px">Status: <span id="lc-status" style="color:var(--teal3)">Loading&hellip;</span></div>
+          <p style="font-size:.8rem;color:var(--muted);margin-bottom:14px">Select your streaming platform, paste the link, and click Go Live. Guests see the stream immediately.</p>
+          <div class="fld" style="margin-bottom:10px"><label for="platformSel">Platform</label>
+            <select id="platformSel" style="width:100%;background:rgba(0,0,0,.4);border:1px solid var(--border);color:var(--text);padding:10px 12px;font-size:.85rem;border-radius:var(--r);outline:none" onchange="updatePlaceholder()">
+              <option value="youtube">YouTube Live</option>
+              <option value="facebook">Facebook Live</option>
+              <option value="vimeo">Vimeo</option>
+              <option value="twitch">Twitch</option>
+              <option value="googlemeet">Google Meet (external link)</option>
+              <option value="zoom">Zoom (external link)</option>
+              <option value="teams">Microsoft Teams (external link)</option>
+              <option value="custom">Custom URL</option>
+            </select>
+          </div>
+          <div class="lc-row">
+            <input id="meetInp" class="lc-inp" type="url" placeholder="https://youtube.com/live/..." aria-label="Stream link">
+            <button class="btn btn-g" onclick="goLive()" type="button" id="goLiveBtn">&#128308; &nbsp; Go Live</button>
+          </div>
+          <div style="font-size:.72rem;color:var(--muted);margin-top:6px" id="platformHint">Paste your YouTube Live link. Viewers will see the stream embedded directly on the page.</div>
+          <div class="btn-row">
+            <button class="btn btn-r btn-sm" onclick="endStream()" type="button">&#9209; End Stream</button>
+            <button class="btn btn-o btn-sm" onclick="resetStream()" type="button">&#8634; Reset to Waiting</button>
+            <button class="btn btn-o btn-sm" onclick="loadStreamStatus()" type="button">&#10227; Refresh</button>
+          </div>
+        </div>
+        <div class="stream-preview" id="streamPreview">
+          <div class="stream-preview-header"><span>&#128250; Live Preview (What Viewers See)</span><button class="btn btn-o btn-sm" onclick="refreshPreview()" type="button">&#10227; Refresh</button></div>
+          <div id="previewContent"><div class="stream-preview-empty">No stream active. Click "Go Live" above to start streaming.</div></div>
+        </div>
+        <div class="g2" style="margin-top:14px">
+          <div class="card">
+            <div class="ctitle">&#9881;&#65039; Stream Settings</div>
+            <div class="fld"><label for="stTitle">Stream Title</label><input id="stTitle" type="text" placeholder="Title shown to viewers" maxlength="100"></div>
+            <div class="fld"><label for="stWelcome">Welcome Message</label><textarea id="stWelcome" style="height:72px" placeholder="Welcome message for viewers"></textarea></div>
+            <button class="btn btn-gold btn-full" onclick="saveStreamSettings()" type="button">&#128190; &nbsp; Save Settings</button>
+          </div>
+          <div class="card">
+            <div class="ctitle">&#128295; Feature Toggles</div>
+            <div class="tog-row"><div><div class="tog-lbl">Live Chat</div><div class="tog-desc">Allow viewers to chat</div></div><label class="tog"><input type="checkbox" id="togChat" checked onchange="saveToggle('chat_open',this)"><span class="tog-sl"></span></label></div>
+            <div class="tog-row"><div><div class="tog-lbl">Blessings</div><div class="tog-desc">Allow viewers to send blessings</div></div><label class="tog"><input type="checkbox" id="togBless" checked onchange="saveToggle('blessings_open',this)"><span class="tog-sl"></span></label></div>
+            <div class="tog-row"><div><div class="tog-lbl">RSVP Form</div><div class="tog-desc">Accept RSVP submissions</div></div><label class="tog"><input type="checkbox" id="togRsvp" checked onchange="saveToggle('rsvp_open',this)"><span class="tog-sl"></span></label></div>
+          </div>
+        </div>
+      </div>
+      <!-- BROADCAST -->
+      <div class="panel" id="p-broadcast">
+        <div class="ptitle">Broadcast Message</div>
+        <div class="card">
+          <div class="ctitle">&#128226; Send Announcement to All Viewers</div>
+          <p style="font-size:.84rem;color:var(--muted);margin-bottom:14px">Message appears as a live banner for all connected viewers instantly.</p>
+          <div class="fld"><label for="bcMsg">Message</label><textarea id="bcMsg" style="height:80px" placeholder="e.g. The Nikkah is about to begin..." maxlength="300"></textarea></div>
+          <div class="btn-row">
+            <button class="btn btn-gold" onclick="broadcast()" type="button" id="bcSendBtn">&#128226; &nbsp; Send Now</button>
+            <button class="btn btn-o btn-sm" type="button" onclick="preset('The Nikkah has been completed! Alhamdulillah - Hawau and Lukman are now married!')">&#127881; Nikkah Done</button>
+            <button class="btn btn-o btn-sm" type="button" onclick="preset('Please join us in making dua for the newlyweds - May Allah bless this union!')">&#129330; Dua</button>
+            <button class="btn btn-o btn-sm" type="button" onclick="preset('Lunch is now being served! JazakAllahu khairan for celebrating with us.')">&#127869; Lunch</button>
+            <button class="btn btn-o btn-sm" type="button" onclick="preset('The Engagement ceremony is now beginning - please stay connected!')">&#128154; Engagement</button>
+          </div>
+        </div>
+        <div class="card"><div class="ctitle">&#128203; Broadcast History</div><div id="bcHistory" class="bc-history"><div class="empty-state"><div class="empty-state-text">No broadcasts sent yet</div></div></div></div>
+      </div>
+      <!-- RSVP -->
+      <div class="panel" id="p-rsvp">
+        <div class="ptitle">RSVP Management</div>
+        <div class="srow" id="rsvpStats" style="max-width:460px"></div>
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+            <div class="ctitle" style="margin:0">All RSVPs</div>
+            <div style="display:flex;gap:6px"><button class="btn btn-r btn-sm" onclick="resetGuestList('rsvp')" type="button">&#128465; Reset All</button><button class="btn btn-o btn-sm" onclick="exportRsvp()" type="button">&#11015; Export CSV</button><button class="btn btn-o btn-sm" onclick="loadRsvp()" type="button">&#10227; Refresh</button></div>
+          </div>
+          <input class="tbl-search" id="rsvpQ" type="text" placeholder="Search by name, attendance, email..." oninput="filterTbl('rsvpTb',this.value)" aria-label="Search RSVPs">
+          <div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Attendance</th><th>Party</th><th>Contact</th><th>Message</th><th>Date</th><th></th></tr></thead><tbody id="rsvpTb"></tbody></table></div>
+          <div id="rsvpEmpty" class="empty-state" style="display:none"><div class="empty-state-icon">&#128140;</div><div class="empty-state-text">No RSVPs received yet</div></div>
+        </div>
+      </div>
+      <!-- GUESTBOOK -->
+      <div class="panel" id="p-guestbook">
+        <div class="ptitle">Guest Book</div>
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+            <div class="ctitle" style="margin:0">All Messages</div>
+            <div style="display:flex;gap:6px"><button class="btn btn-r btn-sm" onclick="resetGuestList('guestbook')" type="button">&#128465; Reset All</button><button class="btn btn-o btn-sm" onclick="exportGb()" type="button">&#11015; Export CSV</button><button class="btn btn-o btn-sm" onclick="loadGb()" type="button">&#10227; Refresh</button></div>
+          </div>
+          <input class="tbl-search" id="gbQ" type="text" placeholder="Search by name, location, message..." oninput="filterTbl('gbTb',this.value)" aria-label="Search guestbook">
+          <div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Location</th><th>Relation</th><th>Message</th><th>Date</th><th>Actions</th></tr></thead><tbody id="gbTb"></tbody></table></div>
+          <div id="gbEmpty" class="empty-state" style="display:none"><div class="empty-state-icon">&#9997;&#65039;</div><div class="empty-state-text">No guestbook entries yet</div></div>
+        </div>
+      </div>
+      <!-- BLESSINGS -->
+      <div class="panel" id="p-blessings">
+        <div class="ptitle">Blessings</div>
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px"><div class="ctitle" style="margin:0">All Blessings</div><div style="display:flex;gap:6px"><button class="btn btn-r btn-sm" onclick="resetGuestList('blessings')" type="button">&#128465; Reset All</button><button class="btn btn-o btn-sm" onclick="loadBlessings()" type="button">&#10227; Refresh</button></div></div>
+          <div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Location</th><th>Message</th><th>Date</th><th></th></tr></thead><tbody id="blessTb"></tbody></table></div>
+          <div id="blessEmpty" class="empty-state" style="display:none"><div class="empty-state-icon">&#129330;</div><div class="empty-state-text">No blessings received yet</div></div>
+        </div>
+      </div>
+      <!-- CHAT LOG -->
+      <div class="panel" id="p-chat">
+        <div class="ptitle">Chat Log</div>
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px"><div class="ctitle" style="margin:0">Live Chat Messages</div><button class="btn btn-o btn-sm" onclick="loadChat()" type="button">&#10227; Refresh</button></div>
+          <div id="chatLog" style="max-height:520px;overflow-y:auto"><div class="loading-spinner"></div></div>
+          <div id="chatEmpty" class="empty-state" style="display:none"><div class="empty-state-icon">&#128172;</div><div class="empty-state-text">No chat messages yet</div></div>
+        </div>
+      </div>
+      <!-- SETTINGS -->
+      <div class="panel" id="p-settings">
+        <div class="ptitle">Site Settings</div>
+        <div class="g2">
+          <div class="card">
+            <div class="ctitle">&#127909; Stream Configuration</div>
+            <div class="fld"><label for="setMeet">Stream Link (any platform)</label><input id="setMeet" type="url" placeholder="YouTube, Facebook, Vimeo, Meet, Zoom, or custom URL"></div>
+            <div class="fld"><label for="setTitle">Stream Title</label><input id="setTitle" type="text" placeholder="Stream title" maxlength="100"></div>
+            <div class="fld"><label for="setWelcome">Welcome Message</label><textarea id="setWelcome" style="height:80px" placeholder="Message shown to viewers"></textarea></div>
+            <button class="btn btn-gold btn-full" onclick="saveAllSettings()" type="button">&#128190; &nbsp; Save All Settings</button>
+          </div>
+          <div class="card">
+            <div class="ctitle">&#128295; Feature Toggles</div>
+            <div class="tog-row"><div><div class="tog-lbl">Live Chat</div><div class="tog-desc">Allow viewers to chat during stream</div></div><label class="tog"><input type="checkbox" id="togChat2" checked onchange="saveToggle('chat_open',this);document.getElementById('togChat').checked=this.checked"><span class="tog-sl"></span></label></div>
+            <div class="tog-row"><div><div class="tog-lbl">Blessings</div><div class="tog-desc">Allow viewers to send blessings</div></div><label class="tog"><input type="checkbox" id="togBless2" checked onchange="saveToggle('blessings_open',this);document.getElementById('togBless').checked=this.checked"><span class="tog-sl"></span></label></div>
+            <div class="tog-row"><div><div class="tog-lbl">RSVP Form</div><div class="tog-desc">Accept RSVP submissions</div></div><label class="tog"><input type="checkbox" id="togRsvp2" checked onchange="saveToggle('rsvp_open',this);document.getElementById('togRsvp').checked=this.checked"><span class="tog-sl"></span></label></div>
+            <div style="margin-top:14px;padding:12px;background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:var(--r)"><div style="font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Server Info</div><div style="font-size:.78rem;color:var(--teal3)" id="serverInfo">Loading&hellip;</div></div>
+          </div>
+        </div>
+      </div>
+      <!-- ANALYTICS -->
+      <div class="panel" id="p-analytics">
+        <div class="ptitle">Analytics</div>
+        <div class="srow">
+          <div class="sbox"><span class="sn" id="an-v">0</span><span class="sl">Viewers</span></div>
+          <div class="sbox"><span class="sn" id="an-r">0</span><span class="sl">RSVPs</span></div>
+          <div class="sbox"><span class="sn" id="an-g">0</span><span class="sl">Guest Book</span></div>
+          <div class="sbox"><span class="sn" id="an-b">0</span><span class="sl">Blessings</span></div>
+          <div class="sbox"><span class="sn" id="an-rx">0</span><span class="sl">Reactions</span></div>
+          <div class="sbox"><span class="sn" id="an-c">0</span><span class="sl">Chat Msgs</span></div>
+        </div>
+        <div class="g2">
+          <div class="card"><div class="ctitle">&#128578; Reaction Breakdown</div><div id="an-react-bars"><span style="color:var(--muted);font-size:.82rem">Loading&hellip;</span></div></div>
+          <div class="card"><div class="ctitle">&#128202; RSVP Breakdown</div><div id="an-rsvp-bd" class="rsvp-band"><span style="color:var(--muted);font-size:.82rem">Loading&hellip;</span></div></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var TOKEN=localStorage.getItem('hl_admin_token')||'';
+var adminSocket=null;
+var broadcastHistory=[];
+var refreshInterval=null;
+var toastT;
+
+function authHeaders(){return{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN}}
+
+function api(method,url,body){
+  var opts={method:method,headers:authHeaders(),credentials:'include'};
+  if(body)opts.body=JSON.stringify(body);
+  return fetch(url,opts).then(function(r){
+    if(r.status===401){localStorage.removeItem('hl_admin_token');TOKEN='';document.getElementById('app').classList.remove('visible');document.getElementById('loginScreen').classList.remove('gone');document.getElementById('loginErr').textContent='Session expired. Please sign in again.';return{error:'Unauthorized'};}
+    return r.json();
+  }).catch(function(e){console.error('API Error:',method,url,e);return{error:e.message||'Network error'};});
+}
+
+function togglePw(){var i=document.getElementById('lPass'),e=document.getElementById('pwEye');if(i.type==='password'){i.type='text';e.innerHTML='&#128584;';}else{i.type='password';e.innerHTML='&#128065;';}}
+
+function login(){
+  var btn=document.getElementById('loginBtn'),err=document.getElementById('loginErr');
+  var u=document.getElementById('lUser').value.trim(),p=document.getElementById('lPass').value;
+  if(!u||!p){err.textContent='Please enter username and password.';return;}
+  btn.classList.add('loading');btn.disabled=true;err.textContent='';
+  fetch('/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})})
+  .then(function(r){return r.json();})
+  .then(function(data){
+    btn.classList.remove('loading');btn.disabled=false;
+    if(data.ok&&data.token){TOKEN=data.token;localStorage.setItem('hl_admin_token',TOKEN);document.getElementById('loginScreen').classList.add('gone');document.getElementById('app').classList.add('visible');initDashboard();}
+    else{err.textContent=data.error||'Login failed. Check your credentials.';}
+  }).catch(function(){btn.classList.remove('loading');btn.disabled=false;err.textContent='Connection error. Please check your internet and try again.';});
+}
+
+function logout(){if(!confirm('Are you sure you want to sign out?'))return;localStorage.removeItem('hl_admin_token');TOKEN='';if(adminSocket){adminSocket.disconnect();adminSocket=null;}location.reload();}
+
+function tryAutoLogin(){
+  if(!TOKEN)return;
+  fetch('/admin/check',{headers:authHeaders()}).then(function(r){
+    if(r.ok){document.getElementById('loginScreen').classList.add('gone');document.getElementById('app').classList.add('visible');initDashboard();}
+    else{localStorage.removeItem('hl_admin_token');TOKEN='';}
+  }).catch(function(){});
+}
+
+function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbBack').classList.toggle('show');}
+function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sbBack').classList.remove('show');}
+
+function show(name){
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.sb-a').forEach(function(a){a.classList.toggle('on',a.dataset.p===name);});
+  var panel=document.getElementById('p-'+name);if(panel)panel.classList.add('on');
+  closeSB();
+  if(name==='rsvp')loadRsvp();if(name==='guestbook')loadGb();if(name==='blessings')loadBlessings();
+  if(name==='chat')loadChat();if(name==='analytics')loadAnalytics();if(name==='stream')loadStreamStatus();if(name==='settings')loadSettings();
+}
+
+function initDashboard(){loadStreamStatus();refreshAnalytics();loadChat();if(refreshInterval)clearInterval(refreshInterval);refreshInterval=setInterval(refreshAnalytics,15000);initSocket();loadServerInfo();}
+
+function refreshAnalytics(){return api('GET','/admin/analytics').then(function(r){if(r&&!r.error)applyStats(r);});}
+
+function applyStats(r){
+  function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+  var viewers=r.viewers||0,rsvp=r.rsvp||0,gb=r.guestbook||0,bless=r.blessings||0,chat=r.chatCount||0,react=0;
+  if(r.reactions)for(var i=0;i<r.reactions.length;i++)react+=r.reactions[i].cnt||0;
+  ['ov-v','an-v'].forEach(function(id){set(id,viewers);});
+  ['ov-r','an-r'].forEach(function(id){set(id,rsvp);});
+  ['ov-g','an-g'].forEach(function(id){set(id,gb);});
+  ['ov-b','an-b'].forEach(function(id){set(id,bless);});
+  ['ov-rx','an-rx'].forEach(function(id){set(id,react);});
+  ['ov-c','an-c'].forEach(function(id){set(id,chat);});
+  set('badgeRsvp',rsvp);set('badgeGb',gb);set('badgeBless',bless);set('tbViewers','\uD83D\uDC41 '+viewers);
+  renderReactBars(r.reactions||[],'ov-react-bars');renderReactBars(r.reactions||[],'an-react-bars');
+  renderRsvpBand(r.rsvpStats||[],'ov-rsvp-bd');renderRsvpBand(r.rsvpStats||[],'an-rsvp-bd');
+}
+
+function renderReactBars(arr,id){
+  var el=document.getElementById(id);if(!el)return;
+  if(!arr.length){el.innerHTML='<span style="color:var(--muted);font-size:.82rem">No reactions yet</span>';return;}
+  var max=1;for(var i=0;i<arr.length;i++)if(arr[i].cnt>max)max=arr[i].cnt;
+  var h='';for(var j=0;j<arr.length;j++){var r=arr[j];h+='<div class="rbar"><span class="rbar-emoji">'+r.emoji+'</span><div class="rbar-track"><div class="rbar-fill" style="width:'+Math.round(r.cnt/max*100)+'%"></div></div><span class="rbar-n">'+r.cnt+'</span></div>';}
+  el.innerHTML=h;
+}
+
+function renderRsvpBand(arr,id){
+  var el=document.getElementById(id);if(!el)return;
+  if(!arr.length){el.innerHTML='<span style="color:var(--muted);font-size:.82rem">No RSVPs yet</span>';return;}
+  var h='';for(var i=0;i<arr.length;i++){var s=arr[i];h+='<div class="rsvp-brow"><span class="rsvp-brow-lbl">'+esc(s.attendance)+'</span><span class="rsvp-brow-val">'+s.cnt+' RSVP'+(s.cnt!==1?'s':'')+' &middot; '+(s.ppl||0)+' guests</span></div>';}
+  el.innerHTML=h;
+}
+
+function initSocket(){
+  if(adminSocket)adminSocket.disconnect();
+  adminSocket=io();
+  var badge=document.getElementById('connBadge');
+  adminSocket.on('connect',function(){badge.className='conn-badge connected';badge.innerHTML='&#9679; Connected';});
+  adminSocket.on('disconnect',function(){badge.className='conn-badge disconnected';badge.innerHTML='&#9679; Disconnected';});
+  adminSocket.on('viewer:count',function(n){document.getElementById('tbViewers').textContent='\uD83D\uDC41 '+n;var ov=document.getElementById('ov-v');if(ov)ov.textContent=n;var an=document.getElementById('an-v');if(an)an.textContent=n;});
+  adminSocket.on('rsvp:new',function(){refreshAnalytics();});
+  adminSocket.on('guestbook:new',function(){refreshAnalytics();});
+  adminSocket.on('blessing:new',function(){refreshAnalytics();});
+  adminSocket.on('stream:golive',function(){loadStreamStatus();});
+  adminSocket.on('stream:ended',function(){loadStreamStatus();});
+  adminSocket.on('stream:reset',function(){loadStreamStatus();});
+  adminSocket.on('chat:message',function(msg){
+    var log=document.getElementById('chatLog');
+    if(log&&document.getElementById('p-chat').classList.contains('on')){
+      var d=document.createElement('div');d.style.cssText='display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);align-items:baseline';
+      d.innerHTML='<span style="font-family:Cinzel,serif;font-size:.58rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold3);white-space:nowrap;min-width:90px">'+esc(msg.name)+'</span><span style="font-size:.8rem;color:var(--text);flex:1">'+esc(msg.message)+'</span><span style="font-size:.62rem;color:var(--muted);white-space:nowrap">'+fmt(msg.created_at)+'</span>';
+      log.insertBefore(d,log.firstChild);
+    }
+    var cc=document.getElementById('ov-c');if(cc)cc.textContent=(parseInt(cc.textContent)||0)+1;
+    var ac=document.getElementById('an-c');if(ac)ac.textContent=(parseInt(ac.textContent)||0)+1;
+  });
+  adminSocket.on('settings:update',function(){loadStreamStatus();});
+}
+
+function loadStreamStatus(){
+  api('GET','/api/stream').then(function(r){
+    if(!r||r.error)return;
+    var status=r.status||'waiting';
+    var dot=document.getElementById('tbDot'),txt=document.getElementById('tbStatus');
+    if(dot)dot.className='tb-dot '+status;
+    if(txt)txt.textContent=status==='live'?'LIVE NOW':status==='ended'?'Stream Ended':'Waiting';
+    var lc=document.getElementById('lc-status');
+    if(lc){if(status==='live'){lc.innerHTML='&#128308; LIVE';lc.style.color='#ff5050';}else if(status==='ended'){lc.innerHTML='&#9989; Ended';lc.style.color='var(--green)';}else{lc.innerHTML='&#9203; Waiting';lc.style.color='var(--teal3)';}}
+    if(r.meetLink){var mi=document.getElementById('meetInp');if(mi)mi.value=r.meetLink;var ol=document.getElementById('ov-link');if(ol)ol.innerHTML='<a href="'+esc(r.meetLink)+'" target="_blank" style="color:var(--teal3)">'+esc(r.meetLink)+'</a>';var sm=document.getElementById('setMeet');if(sm)sm.value=r.meetLink;}
+    var os=document.getElementById('ov-status');
+    if(os){if(status==='live')os.innerHTML='&#128308; Stream is currently LIVE';else if(status==='ended')os.innerHTML='&#9989; Stream has ended';else os.innerHTML='&#9203; Stream has not started yet';}
+    if(r.title){var st=document.getElementById('stTitle');if(st)st.value=r.title;var stt=document.getElementById('setTitle');if(stt)stt.value=r.title;}
+    if(r.welcomeMsg){var sw=document.getElementById('stWelcome');if(sw)sw.value=r.welcomeMsg;var sww=document.getElementById('setWelcome');if(sww)sww.value=r.welcomeMsg;}
+    if(r.chatOpen!==undefined){var tc=document.getElementById('togChat');if(tc)tc.checked=r.chatOpen;var tc2=document.getElementById('togChat2');if(tc2)tc2.checked=r.chatOpen;}
+    if(r.blessingsOpen!==undefined){var tb=document.getElementById('togBless');if(tb)tb.checked=r.blessingsOpen;var tb2=document.getElementById('togBless2');if(tb2)tb2.checked=r.blessingsOpen;}
+    if(r.rsvpOpen!==undefined){var tr=document.getElementById('togRsvp');if(tr)tr.checked=r.rsvpOpen;var tr2=document.getElementById('togRsvp2');if(tr2)tr2.checked=r.rsvpOpen;}
+    updateStreamPreview(status,r.meetLink);
+  });
+}
+
+function updateStreamPreview(status,meetLink){
+  var c=document.getElementById('previewContent');if(!c)return;
+  if(status==='live'&&meetLink){
+    var embedUrl=getEmbedUrl(meetLink);
+    if(embedUrl)c.innerHTML='<iframe src="'+esc(embedUrl)+'" allow="camera;microphone;display-capture;autoplay;encrypted-media" sandbox="allow-scripts allow-same-origin allow-popups" title="Stream Preview" style="width:100%;height:340px;border:none;background:#000"></iframe>';
+    else c.innerHTML='<div class="stream-preview-empty" style="padding:30px"><div style="font-size:2rem;margin-bottom:8px">&#127909;</div><div style="margin-bottom:8px">Streaming on external platform (not embeddable)</div><a href="'+esc(meetLink)+'" target="_blank" style="color:var(--teal3);display:inline-block;padding:8px 16px;border:1px solid var(--teal);border-radius:var(--r)">Open Stream Link &rarr;</a></div>';
+  }
+  else if(status==='ended')c.innerHTML='<div class="stream-preview-empty">&#9989; Stream has ended. Click "Reset to Waiting" to prepare for a new stream.</div>';
+  else c.innerHTML='<div class="stream-preview-empty">No stream active. Select a platform, paste a link, and click "Go Live" to start streaming.</div>';
+}
+
+function getEmbedUrl(link){
+  if(!link)return null;
+  var m;
+  /* YouTube: watch, live, embed, shorts, short URLs */
+  if(m=link.match(/(?:youtube\.com\/(?:watch\?.*v=|live\/|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/i))return 'https://www.youtube.com/embed/'+m[1]+'?autoplay=1&rel=0&modestbranding=1';
+  /* Facebook Live & Videos */
+  if(/facebook\.com.*(\/videos\/|\/live\/?)/i.test(link))return 'https://www.facebook.com/plugins/video.php?href='+encodeURIComponent(link)+'&autoplay=1&mute=0&show_text=0';
+  /* Vimeo (including events) */
+  if(m=link.match(/vimeo\.com\/(?:event\/)?(\d+)/))return 'https://player.vimeo.com/video/'+m[1]+'?autoplay=1&byline=0&portrait=0';
+  /* Dailymotion */
+  if(m=link.match(/(?:dailymotion\.com\/video\/|dai\.ly\/)([\w]+)/))return 'https://www.dailymotion.com/embed/video/'+m[1]+'?autoplay=1';
+  /* Twitch */
+  if(m=link.match(/twitch\.tv\/([\w]+)/i))return 'https://player.twitch.tv/?channel='+m[1]+'&parent='+location.hostname+'&autoplay=true';
+  return null;
+}
+
+function refreshPreview(){loadStreamStatus();toast('Preview refreshed');}
+
+function goLive(){
+  var link=document.getElementById('meetInp').value.trim();
+  if(!link)return toast('Please paste your stream link','err');
+  try{new URL(link);}catch(e){return toast('Please enter a valid URL','err');}
+  var btn=document.getElementById('goLiveBtn');btn.disabled=true;
+  api('POST','/admin/go-live',{meetLink:link}).then(function(r){btn.disabled=false;if(r.ok){toast('&#128308; Stream is now LIVE!');loadStreamStatus();}else toast('Error: '+(r.error||'Failed to go live'),'err');});
+}
+
+function updatePlaceholder(){
+  var sel=document.getElementById('platformSel').value;
+  var inp=document.getElementById('meetInp');
+  var hint=document.getElementById('platformHint');
+  var map={youtube:{ph:'https://youtube.com/live/... or https://youtu.be/...',h:'Paste your YouTube Live link. Viewers will see the stream embedded directly on the page.'},facebook:{ph:'https://www.facebook.com/.../videos/... or .../live/',h:'Paste your Facebook Live video link. Viewers will see the stream embedded on the page.'},vimeo:{ph:'https://vimeo.com/...',h:'Paste your Vimeo link. Viewers will see the stream embedded on the page.'},twitch:{ph:'https://twitch.tv/channelname',h:'Paste your Twitch channel URL. Viewers will see the Twitch stream embedded directly on the page.'},googlemeet:{ph:'https://meet.google.com/abc-defg-xyz',h:'Paste your Google Meet link. Viewers will see a "Join Stream" button to open Meet in a new tab (cannot be embedded).'},zoom:{ph:'https://zoom.us/j/...',h:'Paste your Zoom meeting link. Viewers will see a "Join Stream" button to open Zoom in a new tab (cannot be embedded).'},teams:{ph:'https://teams.microsoft.com/l/meetup-join/...',h:'Paste your Microsoft Teams meeting link. Viewers will see a "Join Stream" button to open Teams in a new tab.'},custom:{ph:'https://your-streaming-url.com/...',h:'Paste any streaming URL. If embeddable, it will be shown inline; otherwise viewers get a join link.'}};
+  var c=map[sel]||map.custom;
+  inp.placeholder=c.ph;
+  if(hint)hint.textContent=c.h;
+}
+
+function resetGuestList(type){
+  var labels={rsvp:'RSVPs',guestbook:'Guest Book entries',blessings:'Blessings'};
+  if(!confirm('Are you sure you want to DELETE ALL '+labels[type]+'? This cannot be undone!'))return;
+  if(!confirm('FINAL WARNING: This will permanently delete all '+labels[type]+'. Continue?'))return;
+  api('POST','/admin/reset-data',{type:type}).then(function(r){
+    if(r.ok){toast('All '+labels[type]+' have been reset to zero');if(type==='rsvp')loadRsvp();else if(type==='guestbook')loadGb();else if(type==='blessings')loadBlessings();refreshAnalytics();
+    }else toast('Error: '+(r.error||'Failed to reset'),'err');
+  });
+}
+
+function endStream(){if(!confirm('End the stream for all viewers?'))return;api('POST','/admin/end-stream').then(function(r){if(r.ok){toast('Stream ended');loadStreamStatus();}else toast('Error: '+(r.error||'Failed'),'err');});}
+
+function resetStream(){if(!confirm('Reset stream to waiting state?'))return;api('POST','/admin/reset-stream').then(function(r){if(r.ok){toast('Stream reset to Waiting');document.getElementById('meetInp').value='';loadStreamStatus();}else toast('Error','err');});}
+
+function saveStreamSettings(){api('POST','/admin/settings',{stream_title:document.getElementById('stTitle').value,welcome_msg:document.getElementById('stWelcome').value}).then(function(r){if(r.ok)toast('&#9989; Stream settings saved!');else toast('Error saving settings','err');});}
+
+function saveAllSettings(){api('POST','/admin/settings',{meet_link:document.getElementById('setMeet').value,stream_title:document.getElementById('setTitle').value,welcome_msg:document.getElementById('setWelcome').value}).then(function(r){if(r.ok)toast('&#9989; All settings saved!');else toast('Error saving settings','err');});}
+
+function saveToggle(key,el){var val=el.checked?'1':'0';var body={};body[key]=val;api('POST','/admin/settings',body).then(function(r){if(!r.ok){toast('Error saving toggle','err');el.checked=!el.checked;}else toast('&#9989; '+key.replace(/_/g,' ')+' updated');});}
+
+function loadSettings(){loadStreamStatus();}
+
+function loadServerInfo(){fetch('/health').then(function(r){return r.json();}).then(function(d){var el=document.getElementById('serverInfo');if(el&&d.time)el.textContent='Server Time: '+new Date(d.time).toLocaleString()+' | Status: Online';}).catch(function(){var el=document.getElementById('serverInfo');if(el)el.textContent='Could not reach server';});}
+
+function preset(msg){document.getElementById('bcMsg').value=msg;}
+
+function broadcast(){
+  var msg=document.getElementById('bcMsg').value.trim();if(!msg)return toast('Enter a message first','err');
+  var btn=document.getElementById('bcSendBtn');btn.disabled=true;
+  api('POST','/admin/broadcast',{message:msg}).then(function(r){btn.disabled=false;if(r.ok){toast('&#128226; Broadcast sent!');broadcastHistory.unshift({message:msg,time:new Date().toISOString()});renderBroadcastHistory();document.getElementById('bcMsg').value='';}else toast('Error: '+(r.error||'Failed'),'err');});
+}
+
+function renderBroadcastHistory(){
+  var el=document.getElementById('bcHistory');if(!el)return;
+  if(!broadcastHistory.length){el.innerHTML='<div class="empty-state"><div class="empty-state-text">No broadcasts sent yet</div></div>';return;}
+  var h='';for(var i=0;i<broadcastHistory.length;i++){var b=broadcastHistory[i];h+='<div class="bc-item"><div class="bc-item-msg">'+esc(b.message)+'</div><div class="bc-item-time">'+fmt(b.time)+'</div></div>';}
+  el.innerHTML=h;
+}
+
+function loadRsvp(){
+  api('GET','/admin/rsvp').then(function(r){
+    if(!r||!r.rsvps)return;
+    if(r.stats){
+      var ph={cnt:0,ppl:0},vi={cnt:0,ppl:0},rg={cnt:0,ppl:0};
+      for(var i=0;i<r.stats.length;i++){if(r.stats[i].attendance==='physical')ph=r.stats[i];else if(r.stats[i].attendance==='virtual')vi=r.stats[i];else if(r.stats[i].attendance==='regrets')rg=r.stats[i];}
+      document.getElementById('rsvpStats').innerHTML='<div class="sbox"><span class="sn">'+ph.cnt+'</span><span class="sl">In Person ('+( ph.ppl||0)+' guests)</span></div><div class="sbox"><span class="sn">'+vi.cnt+'</span><span class="sl">Virtual ('+(vi.ppl||0)+' guests)</span></div><div class="sbox"><span class="sn">'+rg.cnt+'</span><span class="sl">Regrets</span></div>';
+      renderRsvpBand(r.stats,'ov-rsvp-bd');
+    }
+    var tb=document.getElementById('rsvpTb'),emptyEl=document.getElementById('rsvpEmpty');tb.innerHTML='';
+    if(!r.rsvps.length){if(emptyEl)emptyEl.style.display='block';return;}
+    if(emptyEl)emptyEl.style.display='none';
+    for(var j=0;j<r.rsvps.length;j++){
+      var e=r.rsvps[j],tr=document.createElement('tr');
+      var bc=e.attendance==='physical'?'phys':e.attendance==='virtual'?'virt':'reg';
+      tr.innerHTML='<td><strong>'+esc(e.name)+'</strong></td><td><span class="badge b-'+bc+'">'+esc(e.attendance)+'</span></td><td style="font-size:.78rem;color:var(--muted)">'+(e.party_size||1)+'</td><td style="font-size:.74rem;color:var(--muted)">'+esc(e.email||'\u2014')+(e.phone?'<br>'+esc(e.phone):'')+'</td><td class="msg-p" title="'+esc(e.message||'')+'">'+esc(e.message||'\u2014')+'</td><td style="font-size:.68rem;color:var(--muted);white-space:nowrap">'+fmt(e.created_at)+'</td><td><button class="btn btn-r btn-sm" onclick="delRsvp('+e.id+')" type="button">&times;</button></td>';
+      tb.appendChild(tr);
+    }
+  });
+}
+
+function delRsvp(id){if(!confirm('Delete this RSVP?'))return;api('DELETE','/admin/rsvp/'+id).then(function(){loadRsvp();refreshAnalytics();toast('RSVP deleted');});}
+
+function exportRsvp(){
+  api('GET','/admin/rsvp').then(function(r){
+    if(!r||!r.rsvps)return;
+    var rows=[['Name','Email','Phone','Attendance','Party Size','Dietary','Message','Date']];
+    for(var i=0;i<r.rsvps.length;i++){var e=r.rsvps[i];rows.push([e.name,e.email||'',e.phone||'',e.attendance,e.party_size||1,e.dietary||'',e.message||'',e.created_at]);}
+    csvDl(rows,'rsvp_export_'+new Date().toISOString().slice(0,10)+'.csv');toast('&#9989; RSVP data exported');
+  });
+}
+
+function loadGb(){
+  api('GET','/admin/guestbook').then(function(r){
+    if(!r||!r.entries)return;
+    var tb=document.getElementById('gbTb'),emptyEl=document.getElementById('gbEmpty');tb.innerHTML='';
+    if(!r.entries.length){if(emptyEl)emptyEl.style.display='block';return;}
+    if(emptyEl)emptyEl.style.display='none';
+    for(var i=0;i<r.entries.length;i++){
+      var e=r.entries[i],tr=document.createElement('tr');
+      var act=e.approved?'<button class="btn btn-r btn-sm" onclick="hideGb('+e.id+')" type="button">Hide</button>':'<button class="btn btn-o btn-sm" onclick="approveGb('+e.id+')" type="button">Show</button>';
+      act+=' <button class="btn btn-r btn-sm" onclick="delGb('+e.id+')" type="button">&times;</button>';
+      tr.innerHTML='<td><strong>'+esc(e.name)+'</strong></td><td style="font-size:.74rem;color:var(--muted)">'+esc(e.location||'\u2014')+'</td><td style="font-size:.74rem;color:var(--muted)">'+esc(e.relation||'\u2014')+'</td><td class="msg-p" title="'+esc(e.message)+'">'+esc(e.message)+'</td><td style="font-size:.68rem;color:var(--muted);white-space:nowrap">'+fmt(e.created_at)+'</td><td style="white-space:nowrap">'+act+'</td>';
+      tb.appendChild(tr);
+    }
+  });
+}
+
+function delGb(id){if(!confirm('Delete this entry?'))return;api('DELETE','/admin/guestbook/'+id).then(function(){loadGb();refreshAnalytics();toast('Entry deleted');});}
+function hideGb(id){api('PUT','/admin/guestbook/'+id+'/hide').then(function(){loadGb();toast('Entry hidden');});}
+function approveGb(id){api('PUT','/admin/guestbook/'+id+'/approve').then(function(){loadGb();toast('Entry approved');});}
+
+function exportGb(){
+  api('GET','/admin/guestbook').then(function(r){
+    if(!r||!r.entries)return;
+    var rows=[['Name','Email','Location','Relation','Message','Approved','Date']];
+    for(var i=0;i<r.entries.length;i++){var e=r.entries[i];rows.push([e.name,e.email||'',e.location||'',e.relation||'',e.message,e.approved?'Yes':'No',e.created_at]);}
+    csvDl(rows,'guestbook_export_'+new Date().toISOString().slice(0,10)+'.csv');toast('&#9989; Guestbook exported');
+  });
+}
+
+function loadBlessings(){
+  api('GET','/admin/blessings').then(function(r){
+    if(!r||!r.blessings)return;
+    var tb=document.getElementById('blessTb'),emptyEl=document.getElementById('blessEmpty');tb.innerHTML='';
+    if(!r.blessings.length){if(emptyEl)emptyEl.style.display='block';return;}
+    if(emptyEl)emptyEl.style.display='none';
+    for(var i=0;i<r.blessings.length;i++){
+      var b=r.blessings[i],tr=document.createElement('tr');
+      tr.innerHTML='<td><strong>'+esc(b.name)+'</strong></td><td style="font-size:.74rem;color:var(--muted)">'+esc(b.location||'\u2014')+'</td><td class="msg-p">"'+esc(b.message)+'"</td><td style="font-size:.68rem;color:var(--muted);white-space:nowrap">'+fmt(b.created_at)+'</td><td><button class="btn btn-r btn-sm" onclick="delBless('+b.id+')" type="button">&times;</button></td>';
+      tb.appendChild(tr);
+    }
+  });
+}
+
+function delBless(id){if(!confirm('Delete this blessing?'))return;api('DELETE','/admin/blessings/'+id).then(function(){loadBlessings();refreshAnalytics();toast('Blessing deleted');});}
+
+function loadChat(){
+  api('GET','/api/chat').then(function(r){
+    if(!r||!r.messages)return;
+    var log=document.getElementById('chatLog'),emptyEl=document.getElementById('chatEmpty');log.innerHTML='';
+    if(!r.messages.length){if(emptyEl)emptyEl.style.display='block';return;}
+    if(emptyEl)emptyEl.style.display='none';
+    var msgs=r.messages.slice().reverse();
+    for(var i=0;i<msgs.length;i++){
+      var m=msgs[i],d=document.createElement('div');d.style.cssText='display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);align-items:baseline';
+      d.innerHTML='<span style="font-family:Cinzel,serif;font-size:.58rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold3);white-space:nowrap;min-width:90px">'+esc(m.name)+'</span><span style="font-size:.8rem;color:var(--text);flex:1">'+esc(m.message)+'</span><span style="font-size:.62rem;color:var(--muted);white-space:nowrap">'+fmt(m.created_at)+'</span>';
+      log.appendChild(d);
+    }
+  });
+}
+
+function loadAnalytics(){refreshAnalytics();}
+
+function filterTbl(tbId,q){var lq=q.toLowerCase();var rows=document.querySelectorAll('#'+tbId+' tr');for(var i=0;i<rows.length;i++)rows[i].style.display=!lq||rows[i].textContent.toLowerCase().indexOf(lq)!==-1?'':'none';}
+
+function esc(s){var d=document.createElement('div');d.appendChild(document.createTextNode(String(s||'')));return d.innerHTML;}
+function fmt(iso){try{return new Date(iso).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}catch(e){return '';}}
+
+function csvDl(rows,filename){
+  var lines=[];for(var i=0;i<rows.length;i++){var cells=[];for(var j=0;j<rows[i].length;j++)cells.push('"'+String(rows[i][j]).replace(/"/g,'""')+'"');lines.push(cells.join(','));}
+  var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(lines.join('\n'));a.download=filename;a.click();
+}
+
+function toast(msg,type){
+  type=type||'ok';var el=document.getElementById('adminToast');
+  if(!el){el=document.createElement('div');el.id='adminToast';el.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9999;padding:12px 18px;font-size:.82rem;border-radius:4px;color:var(--text);box-shadow:0 8px 28px rgba(0,0,0,.4);transform:translateY(10px);opacity:0;transition:all .3s;max-width:340px;pointer-events:none';document.body.appendChild(el);}
+  el.style.background=type==='err'?'rgba(220,80,80,.14)':'rgba(12,26,12,.97)';
+  el.style.border='1px solid '+(type==='err'?'rgba(220,80,80,.3)':'var(--border2)');
+  el.style.borderLeft='3px solid '+(type==='err'?'var(--red)':'var(--gold)');
+  el.innerHTML=msg;requestAnimationFrame(function(){el.style.transform='translateY(0)';el.style.opacity='1';});
+  clearTimeout(toastT);toastT=setTimeout(function(){el.style.opacity='0';el.style.transform='translateY(10px)';},3500);
+}
+
+tryAutoLogin();
+</script>
+</body>
+</html>
+
+
