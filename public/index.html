@@ -744,23 +744,6 @@ select.form-input option{background:var(--forest)}
             </div>
           </div>
         </div>
-        <div class="s-card">
-          <div class="s-card-hd"><span class="s-card-icon">📋</span><span class="s-card-title">Programme</span></div>
-          <div class="s-card-body" id="sidebarProg"></div>
-        </div>
-        <div class="s-card" id="blessCard">
-          <div class="s-card-hd"><span class="s-card-icon">🤲</span><span class="s-card-title">Send a Blessing</span></div>
-          <div class="s-card-body">
-            <div class="bless-form">
-              <div class="bf-row">
-                <input class="bf-i" id="blessName" type="text" placeholder="Your name" maxlength="40">
-                <input class="bf-i" id="blessLoc" type="text" placeholder="City" maxlength="30">
-              </div>
-              <textarea class="bf-i" id="blessMsg" placeholder="Your message…" maxlength="260"></textarea>
-              <button class="bf-submit" onclick="sendBlessing(this)">🤲 &nbsp; Send Blessing</button>
-            </div>
-            <div class="bless-list" id="blessList"></div>
-          </div>
         </div>
       </div>
     </div>
@@ -881,44 +864,6 @@ select.form-input option{background:var(--forest)}
           <div class="success-icon">🎉</div>
           <div class="success-title">RSVP Received!</div>
           <p class="success-msg">JazakAllahu khairan! Your RSVP has been recorded. We look forward to celebrating with you on 19 April 2026.<br><br>#HawauAndLukman2026</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- GUESTBOOK -->
-<section id="guestbook">
-  <div class="container">
-    <p class="sec-label">✦ Virtual Guest Book ✦</p>
-    <h2 class="sec-title">Leave Your Blessings</h2>
-    <p class="sec-sub">Sign the digital guest book and let Hawau &amp; Lukman know you were here.</p>
-    <div class="ornament"><div class="o-gem"></div></div>
-    <div class="gb-grid">
-      <div class="gb-form-wrap">
-        <div class="form-group"><label>Your Name *</label><input type="text" id="gbName" class="form-input" placeholder="Fatima Adeyemi" maxlength="80"></div>
-        <div class="form-row">
-          <div class="form-group"><label>Email (optional)</label><input type="email" id="gbEmail" class="form-input" placeholder="optional"></div>
-          <div class="form-group"><label>Location</label><input type="text" id="gbLoc" class="form-input" placeholder="Lagos, London…" maxlength="60"></div>
-        </div>
-        <div class="form-group">
-          <label>Relationship to Couple</label>
-          <select id="gbRel" class="form-input"><option>Friend</option><option>Family</option><option>Colleague</option><option>Well-wisher</option><option>Other</option></select>
-        </div>
-        <div class="form-group"><label>Your Message & Blessings *</label><textarea id="gbMsg" class="form-input" style="height:108px" placeholder="Write your heartfelt wishes…" maxlength="500"></textarea></div>
-        
-        <button class="btn btn-gold" id="gbBtn" style="width:100%" onclick="submitGB(this)">
-          <span class="sp"></span><span class="bt">✍️ &nbsp; Sign Guest Book</span>
-        </button>
-      </div>
-      <div>
-        <div class="gb-entries-hd"><span>Guest Messages</span><span class="gb-count" id="gbCountLabel">Loading…</span></div>
-        <div class="gb-entries" id="gbEntries"><div class="gb-empty">Loading messages…</div></div>
-        
-        <div class="gb-pagination">
-          <button class="pg-btn" id="gbPrev" onclick="gbChangePage(-1)" disabled>← Prev</button>
-          <span class="pg-info" id="gbPageInfo">Page 1</span>
-          <button class="pg-btn" id="gbNext" onclick="gbChangePage(1)">Next →</button>
         </div>
       </div>
     </div>
