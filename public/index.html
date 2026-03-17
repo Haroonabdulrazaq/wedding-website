@@ -1999,42 +1999,42 @@ select.form-input option{background:var(--forest)}
 .tab-btn.has-live .tab-live-dot{display:block}
 
 /* ============================================
-   MOBILE: TAB CONTENT SECTIONS
-   Each section becomes a "tab panel" on mobile
+   MOBILE: ALL SECTIONS VISIBLE (Single Page Scroll)
    ============================================ */
 @media(max-width:900px){
-  /* Hide all sections by default on mobile */
+  /* Show all tab panels on mobile */
   .tab-panel{
-    display:none !important;
-  }
-  .tab-panel.active{
     display:block !important;
-    animation:fadeUp .3s ease;
   }
-  /* Hero is also a tab panel - only show when active */
   #hero.tab-panel{
-    display:none !important;
-  }
-  #hero.tab-panel.active{
     display:flex !important;
   }
   
-  /* Hide verse-band on mobile (decorative element) */
+  /* Show verse-band and footer on mobile */
   #verse-band{
+    display:block !important;
+  }
+  #footer{
+    display:block !important;
+    padding-bottom:calc(var(--tab-bar-height) + 16px);
+  }
+  
+  /* Hide mobile tab bar - not needed for scrolling layout */
+  #mobileTabs{
     display:none !important;
   }
   
-  /* Hide footer on mobile (tab bar provides navigation) */
-  #footer{
-    display:none !important;
+  /* Remove bottom padding from body */
+  body{
+    padding-bottom:0;
   }
   
   /* Hide desktop nav links on mobile */
   .n-links{display:none}
   .n-toggle{display:block}
   
-  /* Adjust scroll hint */
-  .scroll-hint{display:none}
+  /* Show scroll hint */
+  .scroll-hint{display:flex}
 }
 
 /* ============================================
@@ -2361,6 +2361,11 @@ select.form-input option{background:var(--forest)}
           <div class="rs-cell"><span class="rs-n" id="rsvpVirtual">—</span><span class="rs-l">Virtual</span></div>
           <div class="rs-cell"><span class="rs-n" id="rsvpTotal">—</span><span class="rs-l">Total</span></div>
         </div>
+        
+        <!-- Share RSVP Button -->
+        <button class="btn btn-primary" onclick="shareRSVP()" style="width:100%;margin-bottom:16px">
+          &#128279; Share RSVP Invitation
+        </button>
         
         <div class="info-item">
           <span class="ii-icon">&#128205;</span>
@@ -3388,13 +3393,61 @@ function calICS() {
    ============================================ */
 async function shareLink() {
   const url = location.href;
+  const shareText = `💍 Hawau & Lukman Wedding 💍
+
+We cordially invite you to celebrate with us!
+
+📅 Date: Sunday, 19 April 2026
+📍 Location: Lagos, Nigeria
+
+Please RSVP to let us know if you'll be joining us in person or virtually.
+
+${url}
+
+#HawauAndLukman2026`;
+  
   if (navigator.share) {
     try {
-      await navigator.share({ title: 'Hawau & Lukman Wedding Live', text: 'Join us virtually! 💍', url });
+      await navigator.share({ 
+        title: 'Hawau & Lukman Wedding Invitation', 
+        text: shareText, 
+        url 
+      });
       return;
     } catch {}
   }
-  navigator.clipboard?.writeText(url).then(() => toast('🔗 Link copied!')).catch(() => toast('Copy: ' + url));
+  navigator.clipboard?.writeText(shareText).then(() => toast('🔗 Invitation copied!')).catch(() => toast('Copy failed'));
+}
+
+async function shareRSVP() {
+  const url = location.href;
+  const rsvpText = `💍 You're Invited! 💍
+
+Hawau Atinuke & Lukman Adebayo
+request the pleasure of your company at their wedding ceremony.
+
+📅 Sunday, 19 April 2026
+📍 Marque Event Centre, Lagos
+
+Please confirm your attendance:
+${url}
+
+Kindly fill the RSVP form on the website.
+We look forward to celebrating with you!
+
+#HawauAndLukman2026`;
+  
+  if (navigator.share) {
+    try {
+      await navigator.share({ 
+        title: 'Wedding RSVP Invitation', 
+        text: rsvpText, 
+        url 
+      });
+      return;
+    } catch {}
+  }
+  navigator.clipboard?.writeText(rsvpText).then(() => toast('📋 RSVP invitation copied!')).catch(() => toast('Copy failed'));
 }
 
 /* ============================================
