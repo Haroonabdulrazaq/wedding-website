@@ -13,6 +13,7 @@ const rateLimit    = require('express-rate-limit');
 const multer       = require('multer');
 const { v4: uuid } = require('uuid');
 const fs           = require('fs');
+const QRCode       = require('qrcode');
 const { Q }        = require('./db/database');
 
 const app    = express();
@@ -276,6 +277,35 @@ app.get('/api/verify/:barcode', (req, res) => {
   });
 });
 
+// Generate QR code image for a barcode
+app.get('/api/qrcode/:barcode', async (req, res) => {
+  const barcode = req.params.barcode?.trim().toUpperCase();
+  if (!barcode || !barcode.startsWith('HL2026-')) {
+    return res.status(400).send('Invalid barcode format');
+  }
+  
+  try {
+    const qrDataUrl = await QRCode.toDataURL(barcode, {
+      width: 300,
+      margin: 2,
+      color: {
+        dark: '#0C1A0E',
+        light: '#FFFFFF'
+      }
+    });
+    
+    // Convert data URL to buffer
+    const base64Data = qrDataUrl.replace(/^data:image\/png;base64,/, '');
+    const buffer = Buffer.from(base64Data, 'base64');
+    
+    res.set('Content-Type', 'image/png');
+    res.set('Cache-Control', 'public, max-age=86400');
+    res.send(buffer);
+  } catch (err) {
+    res.status(500).send('Error generating QR code');
+  }
+});
+
 // ═══════════════════════════════════════════════════
 //  ADMIN API
 // ═══════════════════════════════════════════════════
@@ -379,6 +409,18 @@ app.post('/admin/send-barcodes', requireAdmin, async (req, res) => {
                         rsvp.guest_of === 'groom' ? "Groom's Guest (Lukman)" : 
                         rsvp.guest_of === 'both' ? "Guest of Both" : "";
 
+    // Generate QR code as base64 image
+    let qrCodeImage = '';
+    try {
+      qrCodeImage = await QRCode.toDataURL(rsvp.barcode, {
+        width: 250,
+        margin: 2,
+        color: { dark: '#0C1A0E', light: '#FFFFFF' }
+      });
+    } catch (e) {
+      console.error('Error generating QR code:', e);
+    }
+
     const mailOptions = {
       from: `"Hawau & Lukman Wedding" <${emailConfig.user}>`,
       to: rsvp.email,
@@ -392,11 +434,12 @@ app.post('/admin/send-barcodes', requireAdmin, async (req, res) => {
           
           <div style="background: rgba(255,255,255,0.05); padding: 25px; border-radius: 8px; margin-bottom: 20px;">
             <h2 style="color: #EFC060; font-size: 1.1rem; margin-top: 0;">Dear ${rsvp.name},</h2>
-            <p style="color: #FDFAF2; line-height: 1.8;">Assalamu alaikum! Thank you for your RSVP. Your unique barcode for the wedding celebration is below:</p>
+            <p style="color: #FDFAF2; line-height: 1.8;">Assalamu alaikum! Thank you for your RSVP. Your unique QR code for the wedding celebration is below:</p>
             
-            <div style="text-align: center; padding: 30px; background: #fff; border-radius: 8px; margin: 20px 0;">
-              <svg id="barcode" style="max-width: 100%;"></svg>
-              <p style="font-family: 'Courier New', monospace; font-size: 1.5rem; font-weight: bold; color: #0C1A0E; margin: 15px 0 5px;">${rsvp.barcode}</p>
+            <div style="text-align: center; padding: 25px; background: #fff; border-radius: 8px; margin: 20px 0;">
+              <img src="${qrCodeImage}" alt="QR Code" style="width: 200px; height: 200px; display: block; margin: 0 auto;" />
+              <p style="font-family: 'Courier New', monospace; font-size: 1.3rem; font-weight: bold; color: #0C1A0E; margin: 15px 0 5px; letter-spacing: 2px;">${rsvp.barcode}</p>
+              <p style="color: #666; font-size: 0.75rem;">Scan this QR code at the venue entrance</p>
             </div>
             
             <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-top: 20px;">
@@ -417,7 +460,7 @@ app.post('/admin/send-barcodes', requireAdmin, async (req, res) => {
             <p style="color: #FDFAF2; margin: 8px 0;"><strong>Dress Code:</strong> White & Green</p>
           </div>
           
-          <p style="color: #FDFAF2; text-align: center; line-height: 1.8;">Please present this barcode at the venue entrance. We look forward to celebrating with you!</p>
+          <p style="color: #FDFAF2; text-align: center; line-height: 1.8;">Please present this QR code at the venue entrance. We look forward to celebrating with you!</p>
           
           <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(184,146,44,0.3);">
             <p style="color: #3DD4C8; font-size: 0.85rem;">#HawauAndLukman2026</p>
