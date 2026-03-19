@@ -6,6 +6,7 @@
   <meta name="robots" content="noindex, nofollow">
   <title>Verify Guest - Hawau & Lukman Wedding</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
     :root{
       --bg:#0A1A0C;--bg2:#0F2012;--bg3:#152819;--bg4:#1C3522;
@@ -34,6 +35,30 @@
     .card{background:rgba(0,0,0,.3);border:1px solid var(--border);padding:24px;border-radius:var(--r);margin-bottom:16px}
     .card-title{font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold3);margin-bottom:16px}
     
+    /* Mode Toggle */
+    .mode-toggle{display:flex;background:rgba(0,0,0,.3);border-radius:var(--r);padding:4px;margin-bottom:20px}
+    .mode-btn{flex:1;padding:12px 16px;border:none;background:transparent;color:var(--muted);font-family:'Jost',sans-serif;font-size:.8rem;font-weight:500;letter-spacing:1px;text-transform:uppercase;transition:all var(--dur);border-radius:calc(var(--r) - 4px);cursor:pointer}
+    .mode-btn:hover{color:var(--text)}
+    .mode-btn.active{background:var(--teal);color:#fff}
+    
+    /* Scanner Section */
+    .scanner-section{display:none}
+    .scanner-section.active{display:block}
+    
+    #reader{width:100%;border-radius:var(--r);overflow:hidden;margin-bottom:16px}
+    #reader video{border-radius:var(--r)}
+    
+    .scanner-status{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:rgba(61,212,200,.1);border:1px solid rgba(61,212,200,.2);border-radius:var(--r);margin-bottom:16px}
+    .scanner-status .dot{width:8px;height:8px;background:var(--teal3);border-radius:50%;animation:pulse 1.5s ease infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .scanner-status span{font-size:.75rem;color:var(--teal3)}
+    
+    .scanner-error{background:rgba(224,80,80,.1);border:1px solid rgba(224,80,80,.3);color:var(--red);padding:12px;border-radius:var(--r);font-size:.8rem;text-align:center}
+    
+    /* Manual Input Section */
+    .manual-section{display:none}
+    .manual-section.active{display:block}
+    
     .input-group{margin-bottom:16px}
     .input-group label{display:block;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
     .input-group input{width:100%;background:rgba(0,0,0,.4);border:1px solid var(--border);color:var(--text);padding:14px 16px;font-size:1rem;outline:none;border-radius:var(--r);transition:border-color var(--dur);text-transform:uppercase;letter-spacing:2px;text-align:center}
@@ -42,10 +67,15 @@
     
     .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:2px;text-transform:uppercase;padding:14px 24px;border:none;border-radius:var(--r);transition:all var(--dur);cursor:pointer;width:100%}
     .btn-primary{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff}
-    .btn-primary:hover{filter:brightness(1.1);transform:translateY(-2px)}
+    .btn-primary:hover:not(:disabled){filter:brightness(1.1);transform:translateY(-2px)}
+    .btn-secondary{background:rgba(255,255,255,.1);border:1px solid var(--border);color:var(--text)}
+    .btn-secondary:hover{background:rgba(255,255,255,.15)}
     .btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--bg);font-weight:600}
-    .btn-gold:hover{filter:brightness(1.1);transform:translateY(-2px)}
+    .btn-gold:hover:not(:disabled){filter:brightness(1.1);transform:translateY(-2px)}
     .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+    
+    .btn-row{display:flex;gap:8px}
+    .btn-row .btn{flex:1}
     
     .result{display:none}
     .result.show{display:block;animation:fadeIn .3s ease}
@@ -71,24 +101,33 @@
     .guest-of-badge.groom{background:rgba(100,149,237,.15);color:#87ceeb;border:1px solid rgba(100,149,237,.3)}
     .guest-of-badge.both{background:rgba(180,140,60,.15);color:var(--gold3);border:1px solid rgba(180,140,60,.3)}
     
-    .scanner-section{margin-top:20px}
-    .scanner-info{font-size:.75rem;color:var(--muted);text-align:center;margin-top:12px}
-    
     .history{margin-top:20px}
     .history-title{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
-    .history-item{background:rgba(0,0,0,.2);padding:12px;border-radius:var(--r);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+    .history-item{background:rgba(0,0,0,.2);padding:12px;border-radius:var(--r);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:background var(--dur)}
+    .history-item:hover{background:rgba(0,0,0,.3)}
     .history-name{font-size:.85rem}
     .history-time{font-size:.65rem;color:var(--muted)}
     
     .footer{text-align:center;padding:20px 0;margin-top:auto;border-top:1px solid var(--border)}
     .footer-text{font-size:.65rem;color:var(--muted)}
-    .footer-link{color:var(--teal3)}
     
     .error-msg{background:rgba(224,80,80,.1);border:1px solid rgba(224,80,80,.3);color:var(--red);padding:12px;border-radius:var(--r);font-size:.8rem;text-align:center}
     
     .loading{display:flex;align-items:center;justify-content:center;padding:20px}
     .loading::after{content:'';width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--teal3);border-radius:50%;animation:spin .7s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
+    
+    .scan-success{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(60,179,113,.9);display:none;align-items:center;justify-content:center;z-index:1000;animation:fadeIn .2s ease}
+    .scan-success.show{display:flex}
+    .scan-success-content{text-align:center;color:#fff}
+    .scan-success-icon{font-size:4rem;margin-bottom:16px}
+    .scan-success-text{font-size:1.2rem;font-weight:600}
+    
+    @media(max-width:400px){
+      .mode-btn{padding:10px 12px;font-size:.7rem}
+      .guest-row{flex-direction:column;gap:4px}
+      .guest-value{text-align:left}
+    }
   </style>
 </head>
 <body>
@@ -101,20 +140,48 @@
     <div class="card">
       <div class="card-title">Scan or Enter Barcode</div>
       
-      <div class="input-group">
-        <label for="barcodeInput">Barcode Number</label>
-        <input type="text" id="barcodeInput" placeholder="HL2026-XXXXXXXX" maxlength="20" onkeydown="if(event.key==='Enter')verifyBarcode()">
+      <!-- Mode Toggle -->
+      <div class="mode-toggle">
+        <button class="mode-btn active" onclick="switchMode('camera')" id="cameraBtn">
+          📷 Camera
+        </button>
+        <button class="mode-btn" onclick="switchMode('manual')" id="manualBtn">
+          ⌨️ Manual
+        </button>
       </div>
       
-      <button class="btn btn-primary" id="verifyBtn" onclick="verifyBarcode()">
-        <span id="btnText">Verify Guest</span>
-      </button>
+      <!-- Camera Scanner Section -->
+      <div class="scanner-section active" id="scannerSection">
+        <div class="scanner-status">
+          <span class="dot"></span>
+          <span>Point camera at barcode</span>
+        </div>
+        <div id="reader"></div>
+        <div id="scannerError" style="display:none"></div>
+      </div>
       
-      <p class="scanner-info">Enter the barcode manually or use a barcode scanner</p>
+      <!-- Manual Input Section -->
+      <div class="manual-section" id="manualSection">
+        <div class="input-group">
+          <label for="barcodeInput">Barcode Number</label>
+          <input type="text" id="barcodeInput" placeholder="HL2026-XXXXXXXX" maxlength="20" onkeydown="if(event.key==='Enter')verifyBarcode()">
+        </div>
+        <button class="btn btn-primary" id="verifyBtn" onclick="verifyBarcode()">
+          <span id="btnText">Verify Guest</span>
+        </button>
+      </div>
     </div>
     
     <div class="result" id="resultCard">
       <!-- Results will be inserted here -->
+    </div>
+    
+    <!-- Scan Success Overlay -->
+    <div class="scan-success" id="scanSuccess">
+      <div class="scan-success-content">
+        <div class="scan-success-icon">✓</div>
+        <div class="scan-success-text">Barcode Scanned!</div>
+      </div>
     </div>
     
     <div class="history" id="historySection" style="display:none">
@@ -123,12 +190,114 @@
     </div>
     
     <div class="footer">
-      <p class="footer-text">Hawau & Lukman Wedding &bull; 19 April 2026</p>
+      <p class="footer-text">Hawau & Lukman Wedding • 19 April 2026</p>
     </div>
   </div>
   
   <script>
     var scanHistory = JSON.parse(localStorage.getItem('scanHistory') || '[]');
+    var html5QrCode = null;
+    var currentMode = 'camera';
+    var isScanning = false;
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      initScanner();
+      renderHistory();
+    });
+    
+    function switchMode(mode) {
+      currentMode = mode;
+      var cameraBtn = document.getElementById('cameraBtn');
+      var manualBtn = document.getElementById('manualBtn');
+      var scannerSection = document.getElementById('scannerSection');
+      var manualSection = document.getElementById('manualSection');
+      
+      if (mode === 'camera') {
+        cameraBtn.classList.add('active');
+        manualBtn.classList.remove('active');
+        scannerSection.classList.add('active');
+        manualSection.classList.remove('active');
+        initScanner();
+      } else {
+        cameraBtn.classList.remove('active');
+        manualBtn.classList.add('active');
+        scannerSection.classList.remove('active');
+        manualSection.classList.add('active');
+        stopScanner();
+        document.getElementById('barcodeInput').focus();
+      }
+    }
+    
+    function initScanner() {
+      if (html5QrCode && isScanning) return;
+      
+      var scannerError = document.getElementById('scannerError');
+      scannerError.style.display = 'none';
+      
+      html5QrCode = new Html5Qrcode("reader");
+      
+      var config = {
+        fps: 10,
+        qrbox: { width: 250, height: 150 },
+        aspectRatio: 1.0,
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.QR_CODE,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E
+        ]
+      };
+      
+      html5QrCode.start(
+        { facingMode: "environment" },
+        config,
+        onScanSuccess,
+        onScanFailure
+      ).then(function() {
+        isScanning = true;
+      }).catch(function(err) {
+        scannerError.style.display = 'block';
+        scannerError.innerHTML = 
+          '<strong>Camera access denied or unavailable</strong><br><br>' +
+          'Please allow camera access or use manual input above.<br>' +
+          '<button class="btn btn-secondary" style="margin-top:12px;padding:10px 16px" onclick="switchMode(\'manual\')">Switch to Manual Input</button>';
+      });
+    }
+    
+    function stopScanner() {
+      if (html5QrCode && isScanning) {
+        html5QrCode.stop().then(function() {
+          isScanning = false;
+        }).catch(function(err) {
+          console.log('Error stopping scanner:', err);
+        });
+      }
+    }
+    
+    function onScanSuccess(decodedText, decodedResult) {
+      // Show success overlay
+      var overlay = document.getElementById('scanSuccess');
+      overlay.classList.add('show');
+      
+      setTimeout(function() {
+        overlay.classList.remove('show');
+      }, 800);
+      
+      // Stop scanner temporarily
+      if (html5QrCode && isScanning) {
+        html5QrCode.pause();
+      }
+      
+      // Process the barcode
+      verifyBarcode(decodedText);
+    }
+    
+    function onScanFailure(error) {
+      // Ignore scan failures - they happen frequently while scanning
+    }
     
     function renderHistory() {
       var section = document.getElementById('historySection');
@@ -148,9 +317,10 @@
         var div = document.createElement('div');
         div.className = 'history-item';
         div.innerHTML = '<span class="history-name">' + escapeHtml(item.name) + '</span><span class="history-time">' + item.time + '</span>';
-        div.onclick = (function(barcode) {
-          return function() {
+        (function(barcode) {
+          div.onclick = function() {
             document.getElementById('barcodeInput').value = barcode;
+            switchMode('manual');
             verifyBarcode();
           };
         })(item.barcode);
@@ -175,8 +345,8 @@
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
     
-    function verifyBarcode() {
-      var barcode = document.getElementById('barcodeInput').value.trim().toUpperCase();
+    function verifyBarcode(scannedBarcode) {
+      var barcode = scannedBarcode || document.getElementById('barcodeInput').value.trim().toUpperCase();
       var btn = document.getElementById('verifyBtn');
       var btnText = document.getElementById('btnText');
       var resultCard = document.getElementById('resultCard');
@@ -187,9 +357,14 @@
         return;
       }
       
-      if (!barcode.startsWith('HL2026-')) {
+      // Extract barcode if it contains HL2026-
+      var barcodeMatch = barcode.match(/HL2026-[A-F0-9]{6,12}/i);
+      if (barcodeMatch) {
+        barcode = barcodeMatch[0].toUpperCase();
+      } else if (!barcode.startsWith('HL2026-')) {
         resultCard.className = 'result show';
-        resultCard.innerHTML = '<div class="error-msg">Invalid barcode format. Should start with HL2026-</div>';
+        resultCard.innerHTML = '<div class="error-msg">Invalid barcode format. Should contain HL2026-XXXXXX</div>';
+        resumeScanner();
         return;
       }
       
@@ -218,10 +393,11 @@
             
             resultCard.className = 'result show';
             resultCard.innerHTML = 
-              '<div class="valid-badge valid">&#10004; Valid Guest</div>' +
+              '<div class="valid-badge valid">✓ Valid Guest</div>' +
               '<div class="card-title">Guest Details</div>' +
               '<div class="guest-info">' +
                 '<div class="guest-row"><span class="guest-label">Name</span><span class="guest-value"><strong>' + escapeHtml(guest.name) + '</strong></span></div>' +
+                '<div class="guest-row"><span class="guest-label">Barcode</span><span class="guest-value" style="font-family:monospace;font-size:.8rem">' + barcode + '</span></div>' +
                 '<div class="guest-row"><span class="guest-label">Attendance</span><span class="guest-value"><span class="attendance-badge ' + attendanceClass + '">' + attendanceText + '</span></span></div>' +
                 guestOfHtml +
                 '<div class="guest-row"><span class="guest-label">Party Size</span><span class="guest-value">' + guest.party_size + ' guest' + (guest.party_size > 1 ? 's' : '') + '</span></div>' +
@@ -229,6 +405,9 @@
                 '<div class="guest-row"><span class="guest-label">Email</span><span class="guest-value">' + (guest.email || '—') + '</span></div>' +
                 '<div class="guest-row"><span class="guest-label">Phone</span><span class="guest-value">' + (guest.phone || '—') + '</span></div>' +
                 '<div class="guest-row"><span class="guest-label">Registered</span><span class="guest-value">' + new Date(guest.registered_at).toLocaleDateString() + '</span></div>' +
+              '</div>' +
+              '<div class="btn-row" style="margin-top:16px">' +
+                '<button class="btn btn-secondary" onclick="resetScanner()">Scan Another</button>' +
               '</div>';
             
             addToHistory(guest, barcode);
@@ -236,21 +415,45 @@
           } else {
             resultCard.className = 'result show';
             resultCard.innerHTML = 
-              '<div class="valid-badge invalid">&#10006; Invalid</div>' +
-              '<div class="error-msg">' + escapeHtml(data.error) + '</div>';
+              '<div class="valid-badge invalid">✗ Invalid</div>' +
+              '<div class="error-msg">' + escapeHtml(data.error) + '</div>' +
+              '<div class="btn-row" style="margin-top:16px">' +
+                '<button class="btn btn-secondary" onclick="resetScanner()">Try Again</button>' +
+              '</div>';
+            resumeScanner();
           }
         })
         .catch(function(err) {
           btn.disabled = false;
           btnText.textContent = 'Verify Guest';
           resultCard.className = 'result show';
-          resultCard.innerHTML = '<div class="error-msg">Connection error. Please try again.</div>';
+          resultCard.innerHTML = 
+            '<div class="error-msg">Connection error. Please try again.</div>' +
+            '<div class="btn-row" style="margin-top:16px">' +
+              '<button class="btn btn-secondary" onclick="resetScanner()">Try Again</button>' +
+            '</div>';
+          resumeScanner();
         });
     }
     
-    // Initialize
-    renderHistory();
-    document.getElementById('barcodeInput').focus();
+    function resumeScanner() {
+      if (currentMode === 'camera' && html5QrCode && isScanning) {
+        setTimeout(function() {
+          html5QrCode.resume();
+        }, 1000);
+      }
+    }
+    
+    function resetScanner() {
+      document.getElementById('resultCard').className = 'result';
+      document.getElementById('barcodeInput').value = '';
+      
+      if (currentMode === 'camera') {
+        resumeScanner();
+      } else {
+        document.getElementById('barcodeInput').focus();
+      }
+    }
   </script>
 </body>
 </html>
