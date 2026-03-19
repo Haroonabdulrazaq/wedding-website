@@ -3918,6 +3918,42 @@ function sendChat() {
 /* ============================================
    RSVP
    ============================================ */
+/* ============================================
+   RSVP DEADLINE CHECK
+   ============================================ */
+let rsvpOpen = true;
+
+async function checkRSVPDeadline() {
+  try {
+    const r = await api('GET', '/api/rsvp/status');
+    rsvpOpen = r.isOpen;
+    
+    if (!r.isOpen) {
+      const formWrap = document.getElementById('rsvpFormWrap');
+      const deadlineMsg = document.getElementById('rsvpDeadlineMsg');
+      if (formWrap) {
+        formWrap.innerHTML = `
+          <div style="text-align:center;padding:40px 20px;">
+            <div style="font-size:3rem;margin-bottom:16px">📋</div>
+            <h3 style="font-family:'Cinzel',serif;color:var(--gold3);margin-bottom:12px">RSVP Closed</h3>
+            <p style="color:var(--muted);max-width:400px;margin:0 auto">
+              The RSVP deadline has passed (${r.deadlineFormatted}). 
+              If you need to make changes or have questions, please contact us via WhatsApp.
+            </p>
+            <div style="margin-top:20px">
+              <a href="https://wa.me/2348023193526" class="btn btn-primary" target="_blank" style="display:inline-flex;gap:8px;padding:12px 24px">
+                📱 Contact via WhatsApp
+              </a>
+            </div>
+          </div>
+        `;
+      }
+    }
+  } catch (e) {
+    console.log('Could not check RSVP deadline');
+  }
+}
+
 async function loadRSVPStats() {
   const r = await api('GET', '/api/rsvp/stats');
   if (!r.stats) return;
@@ -3931,8 +3967,15 @@ async function loadRSVPStats() {
   document.getElementById('rsvpTotal').textContent = r.total || 0;
 }
 loadRSVPStats();
+checkRSVPDeadline();  // Check RSVP deadline on page load
 
 async function submitRSVP(btn) {
+  // Check if RSVP is still open
+  if (!rsvpOpen) {
+    toast('⚠️ RSVP deadline has passed. Please contact us via WhatsApp.');
+    return;
+  }
+  
   const name = document.getElementById('rsvpName').value.trim();
   const attend = document.querySelector('input[name="attend"]:checked')?.value;
   const guestOf = document.getElementById('rsvpGuestOf').value;
@@ -3959,6 +4002,9 @@ async function submitRSVP(btn) {
     document.getElementById('rsvpSuccess').classList.add('show');
     loadRSVPStats();
     toast('💌 RSVP submitted! JazakAllahu khairan!');
+    if (r.barcode) {
+      console.log('Your barcode:', r.barcode);
+    }
   } else if (r.error && r.error.includes('already exists')) {
     toast('⚠️ ' + r.error, 4500);
   } else {

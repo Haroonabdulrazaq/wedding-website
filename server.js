@@ -165,6 +165,13 @@ app.post('/api/guestbook', postLimit, (req, res) => {
   res.json({ ok: true, entry });
 });
 app.post('/api/rsvp', postLimit, (req, res) => {
+  // Check RSVP deadline (April 17, 2026 at 11:59 PM WAT)
+  const deadline = new Date('2026-04-17T23:59:59+01:00');
+  const now = new Date();
+  if (now > deadline) {
+    return res.status(403).json({ error: 'RSVP deadline has passed. RSVP closed on April 17, 2026 at 11:59 PM.' });
+  }
+
   const { name, email='', phone='', attendance, guest_of='', party_size=1, dietary='', message='' } = req.body;
 
   if (!name?.trim()) return res.status(400).json({ error: 'Name is required' });
@@ -185,9 +192,12 @@ app.post('/api/rsvp', postLimit, (req, res) => {
     return res.status(409).json({ error: 'An RSVP with this name already exists. If you need to update your RSVP, please contact us via WhatsApp.' });
   }
 
-  Q.rsvpAdd(cleanName, cleanEmail, cleanPhone, attendance, cleanGuestOf, Math.min(20,+party_size||1), cleanDietary, cleanMessage);
+  // Generate unique barcode
+  const barcode = 'HL2026-' + crypto.randomBytes(6).toString('hex').toUpperCase();
+
+  Q.rsvpAdd(cleanName, cleanEmail, cleanPhone, attendance, cleanGuestOf, Math.min(20,+party_size||1), cleanDietary, cleanMessage, barcode);
   io.emit('rsvp:new', {});
-  res.json({ ok: true });
+  res.json({ ok: true, barcode });
 });
 
 app.get('/api/rsvp/stats', (req, res) => res.json({ stats: Q.rsvpStats(), total: Q.rsvpCount() }));
@@ -220,6 +230,46 @@ app.post('/api/reactions/:emoji', reactLimit, (req, res) => {
 });
 
 app.get('/api/chat', (req, res) => res.json({ messages: Q.chatRecent() }));
+
+// RSVP deadline status
+app.get('/api/rsvp/status', (req, res) => {
+  const deadline = new Date('2026-04-17T23:59:59+01:00');
+  const now = new Date();
+  const isOpen = now <= deadline;
+  res.json({ 
+    isOpen, 
+    deadline: deadline.toISOString(),
+    deadlineFormatted: 'April 17, 2026 at 11:59 PM WAT'
+  });
+});
+
+// Barcode verification (for /verify page)
+app.get('/api/verify/:barcode', (req, res) => {
+  const barcode = req.params.barcode?.trim().toUpperCase();
+  if (!barcode || !barcode.startsWith('HL2026-')) {
+    return res.status(400).json({ valid: false, error: 'Invalid barcode format' });
+  }
+  
+  const rsvp = Q.rsvpGetByBarcode(barcode);
+  if (!rsvp) {
+    return res.status(404).json({ valid: false, error: 'Barcode not found' });
+  }
+  
+  // Return guest details
+  res.json({
+    valid: true,
+    guest: {
+      name: rsvp.name,
+      email: rsvp.email,
+      phone: rsvp.phone,
+      attendance: rsvp.attendance,
+      guest_of: rsvp.guest_of,
+      party_size: rsvp.party_size,
+      dietary: rsvp.dietary,
+      registered_at: rsvp.created_at
+    }
+  });
+});
 
 // ═══════════════════════════════════════════════════
 //  ADMIN API
@@ -279,6 +329,125 @@ app.post('/admin/settings', requireAdmin, handleSettings);
 app.get('/admin/rsvp',          requireAdmin, (req, res) => res.json({ rsvps: Q.rsvpAll(), stats: Q.rsvpStats() }));
 app.delete('/admin/rsvp/:id',   requireAdmin, (req, res) => { Q.rsvpDel(+req.params.id); res.json({ ok: true }); });
 
+// Send barcode emails to all guests with emails
+app.post('/admin/send-barcodes', requireAdmin, async (req, res) => {
+  const rsvpsWithEmails = Q.rsvpWithEmails();
+  
+  if (rsvpsWithEmails.length === 0) {
+    return res.json({ ok: true, sent: 0, message: 'No guests with email addresses found' });
+  }
+
+  // Email configuration - uses environment variables
+  const emailConfig = {
+    service: process.env.EMAIL_SERVICE || 'gmail',
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  };
+
+  if (!emailConfig.user || !emailConfig.pass) {
+    return res.status(500).json({ error: 'Email not configured. Set EMAIL_USER and EMAIL_PASS environment variables.' });
+  }
+
+  let nodemailer;
+  try {
+    nodemailer = require('nodemailer');
+  } catch (e) {
+    return res.status(500).json({ error: 'Nodemailer not installed. Run: npm install nodemailer' });
+  }
+
+  const transporter = nodemailer.createTransport({
+    service: emailConfig.service,
+    auth: {
+      user: emailConfig.user,
+      pass: emailConfig.pass
+    }
+  });
+
+  let sent = 0;
+  let failed = 0;
+  const results = [];
+
+  for (const rsvp of rsvpsWithEmails) {
+    if (!rsvp.email || rsvp.barcode_sent) continue;
+
+    const guestOfText = rsvp.guest_of === 'bride' ? "Bride's Guest (Hawau)" : 
+                        rsvp.guest_of === 'groom' ? "Groom's Guest (Lukman)" : 
+                        rsvp.guest_of === 'both' ? "Guest of Both" : "";
+
+    const mailOptions = {
+      from: `"Hawau & Lukman Wedding" <${emailConfig.user}>`,
+      to: rsvp.email,
+      subject: 'Your Wedding Invitation Barcode - Hawau & Lukman 2026',
+      html: `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #0C1A0E; border-radius: 12px; border: 1px solid #B8922C;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="font-family: 'Great Vibes', cursive, serif; color: #EFC060; font-size: 2.5rem; margin: 0;">Hawau & Lukman</h1>
+            <p style="color: #3DD4C8; font-size: 0.9rem; letter-spacing: 2px;">WEDDING CELEBRATION • 19 APRIL 2026</p>
+          </div>
+          
+          <div style="background: rgba(255,255,255,0.05); padding: 25px; border-radius: 8px; margin-bottom: 20px;">
+            <h2 style="color: #EFC060; font-size: 1.1rem; margin-top: 0;">Dear ${rsvp.name},</h2>
+            <p style="color: #FDFAF2; line-height: 1.8;">Assalamu alaikum! Thank you for your RSVP. Your unique barcode for the wedding celebration is below:</p>
+            
+            <div style="text-align: center; padding: 30px; background: #fff; border-radius: 8px; margin: 20px 0;">
+              <svg id="barcode" style="max-width: 100%;"></svg>
+              <p style="font-family: 'Courier New', monospace; font-size: 1.5rem; font-weight: bold; color: #0C1A0E; margin: 15px 0 5px;">${rsvp.barcode}</p>
+            </div>
+            
+            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-top: 20px;">
+              <h3 style="color: #3DD4C8; font-size: 0.9rem; margin-top: 0;">Your Registration Details:</h3>
+              <p style="color: #FDFAF2; margin: 8px 0;"><strong>Attendance:</strong> ${rsvp.attendance === 'physical' ? 'In Person' : rsvp.attendance === 'virtual' ? 'Virtual' : 'Regrets'}</p>
+              ${guestOfText ? `<p style="color: #FDFAF2; margin: 8px 0;"><strong>Guest Of:</strong> ${guestOfText}</p>` : ''}
+              <p style="color: #FDFAF2; margin: 8px 0;"><strong>Party Size:</strong> ${rsvp.party_size} ${rsvp.party_size > 1 ? 'guests' : 'guest'}</p>
+              ${rsvp.dietary ? `<p style="color: #FDFAF2; margin: 8px 0;"><strong>Dietary Notes:</strong> ${rsvp.dietary}</p>` : ''}
+            </div>
+          </div>
+          
+          <div style="background: rgba(15,122,106,0.2); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h3 style="color: #EFC060; font-size: 1rem; margin-top: 0;">📍 Event Details</h3>
+            <p style="color: #FDFAF2; margin: 8px 0;"><strong>Date:</strong> Sunday, 19 April 2026</p>
+            <p style="color: #FDFAF2; margin: 8px 0;"><strong>Engagement:</strong> 11:00 AM WAT</p>
+            <p style="color: #FDFAF2; margin: 8px 0;"><strong>Nikkah:</strong> 1:00 PM WAT</p>
+            <p style="color: #FDFAF2; margin: 8px 0;"><strong>Venue:</strong> Marque Event Centre, 22 Town Planning Way, Ilupeju, Lagos</p>
+            <p style="color: #FDFAF2; margin: 8px 0;"><strong>Dress Code:</strong> White & Green</p>
+          </div>
+          
+          <p style="color: #FDFAF2; text-align: center; line-height: 1.8;">Please present this barcode at the venue entrance. We look forward to celebrating with you!</p>
+          
+          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(184,146,44,0.3);">
+            <p style="color: #3DD4C8; font-size: 0.85rem;">#HawauAndLukman2026</p>
+            <p style="color: rgba(253,250,242,0.5); font-size: 0.75rem;">Questions? Contact: +234 802 319 3526 (Bride) | +234 706 095 7637 (Groom)</p>
+          </div>
+        </div>
+      `
+    };
+
+    try {
+      await transporter.sendMail(mailOptions);
+      Q.rsvpMarkBarcodeSent(rsvp.id);
+      sent++;
+      results.push({ email: rsvp.email, name: rsvp.name, status: 'sent' });
+    } catch (e) {
+      failed++;
+      results.push({ email: rsvp.email, name: rsvp.name, status: 'failed', error: e.message });
+    }
+  }
+
+  res.json({ 
+    ok: true, 
+    sent, 
+    failed, 
+    total: rsvpsWithEmails.length,
+    results 
+  });
+});
+
+// Get RSVPs with barcode info
+app.get('/admin/rsvp/barcodes', requireAdmin, (req, res) => {
+  const rsvps = Q.rsvpAll();
+  res.json({ rsvps });
+});
+
 app.get('/admin/guestbook',             requireAdmin, (req, res) => res.json({ entries: Q.gbAll() }));
 app.delete('/admin/guestbook/:id',      requireAdmin, (req, res) => { Q.gbDel(+req.params.id); res.json({ ok: true }); });
 app.put('/admin/guestbook/:id/hide',    requireAdmin, (req, res) => { Q.gbHide(+req.params.id); res.json({ ok: true }); });
@@ -328,6 +497,7 @@ app.post('/admin/gallery', requireAdmin, upload.single('photo'), (req, res) => {
 //  PAGE ROUTES (express.static handles / and /admin.html)
 // ═══════════════════════════════════════════════════
 app.get('/admin',   (req, res) => res.sendFile(path.join(__dirname, 'public/admin.html')));
+app.get('/verify',  (req, res) => res.sendFile(path.join(__dirname, 'public/verify.html')));
 app.get('/health',  (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 app.get('/ping',    (req, res) => res.send('pong'));
 

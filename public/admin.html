@@ -283,13 +283,25 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div class="panel" id="p-rsvp">
         <div class="ptitle">RSVP Management</div>
         <div class="srow" id="rsvpStats" style="max-width:460px"></div>
+        
+        <!-- Barcode Email Section -->
+        <div class="card" style="background:rgba(15,122,106,.08);border-color:rgba(61,212,200,.2)">
+          <div class="ctitle">&#128231; Send Barcode Invitations</div>
+          <p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Send personalized barcode invitations to all guests who provided email addresses. Each email contains their unique barcode for event entry.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <button class="btn btn-gold btn-sm" onclick="sendBarcodes()" type="button" id="sendBarcodesBtn">&#128233; Send All Barcodes</button>
+            <span id="barcodeStatus" style="font-size:.72rem;color:var(--muted)"></span>
+          </div>
+          <div id="barcodeResults" style="margin-top:12px;display:none"></div>
+        </div>
+        
         <div class="card">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
             <div class="ctitle" style="margin:0">All RSVPs</div>
             <div style="display:flex;gap:6px"><button class="btn btn-r btn-sm" onclick="resetGuestList('rsvp')" type="button">&#128465; Reset All</button><button class="btn btn-o btn-sm" onclick="exportRsvp()" type="button">&#11015; Export CSV</button><button class="btn btn-o btn-sm" onclick="loadRsvp()" type="button">&#10227; Refresh</button></div>
           </div>
-          <input class="tbl-search" id="rsvpQ" type="text" placeholder="Search by name, attendance, email..." oninput="filterTbl('rsvpTb',this.value)" aria-label="Search RSVPs">
-          <div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Attendance</th><th>Guest Of</th><th>Party</th><th>Contact</th><th>Message</th><th>Date</th><th></th></tr></thead><tbody id="rsvpTb"></tbody></table></div>
+          <input class="tbl-search" id="rsvpQ" type="text" placeholder="Search by name, attendance, email, barcode..." oninput="filterTbl('rsvpTb',this.value)" aria-label="Search RSVPs">
+          <div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Attendance</th><th>Guest Of</th><th>Barcode</th><th>Party</th><th>Contact</th><th>Sent</th><th>Date</th><th></th></tr></thead><tbody id="rsvpTb"></tbody></table></div>
           <div id="rsvpEmpty" class="empty-state" style="display:none"><div class="empty-state-icon">&#128140;</div><div class="empty-state-text">No RSVPs received yet</div></div>
         </div>
       </div>
@@ -608,9 +620,47 @@ function loadRsvp(){
       else if(guestOf==='groom')guestBadge='<span class="badge b-groom">Groom</span>';
       else if(guestOf==='both')guestBadge='<span class="badge b-both">Both</span>';
       else guestBadge='<span style="color:var(--muted)">—</span>';
-      tr.innerHTML='<td><strong>'+esc(e.name)+'</strong></td><td><span class="badge b-'+bc+'">'+esc(e.attendance)+'</span></td><td>'+guestBadge+'</td><td style="font-size:.78rem;color:var(--muted)">'+(e.party_size||1)+'</td><td style="font-size:.74rem;color:var(--muted)">'+esc(e.email||'\u2014')+(e.phone?'<br>'+esc(e.phone):'')+'</td><td class="msg-p" title="'+esc(e.message||'')+'">'+esc(e.message||'\u2014')+'</td><td style="font-size:.68rem;color:var(--muted);white-space:nowrap">'+fmt(e.created_at)+'</td><td><button class="btn btn-r btn-sm" onclick="delRsvp('+e.id+')" type="button">&times;</button></td>';
+      
+      var barcodeHtml = e.barcode ? '<code style="font-size:.68rem;background:rgba(0,0,0,.3);padding:2px 6px;border-radius:3px">'+e.barcode+'</code>' : '<span style="color:var(--muted)">—</span>';
+      var sentHtml = e.barcode_sent ? '<span style="color:var(--green)">&#10004;</span>' : '<span style="color:var(--muted)">—</span>';
+      
+      tr.innerHTML='<td><strong>'+esc(e.name)+'</strong></td><td><span class="badge b-'+bc+'">'+esc(e.attendance)+'</span></td><td>'+guestBadge+'</td><td>'+barcodeHtml+'</td><td style="font-size:.78rem;color:var(--muted)">'+(e.party_size||1)+'</td><td style="font-size:.74rem;color:var(--muted)">'+esc(e.email||'\u2014')+(e.phone?'<br>'+esc(e.phone):'')+'</td><td style="text-align:center">'+sentHtml+'</td><td style="font-size:.68rem;color:var(--muted);white-space:nowrap">'+fmt(e.created_at)+'</td><td><button class="btn btn-r btn-sm" onclick="delRsvp('+e.id+')" type="button">&times;</button></td>';
       tb.appendChild(tr);
     }
+  });
+}
+
+function sendBarcodes(){
+  if(!confirm('Send barcode invitation emails to all guests with email addresses?'))return;
+  var btn=document.getElementById('sendBarcodesBtn');
+  var status=document.getElementById('barcodeStatus');
+  var results=document.getElementById('barcodeResults');
+  
+  btn.disabled=true;btn.innerHTML='<span class="loading-spinner" style="width:14px;height:14px"></span> Sending...';
+  status.textContent='Sending emails...';
+  results.style.display='none';
+  
+  api('POST','/admin/send-barcodes').then(function(r){
+    btn.disabled=false;btn.innerHTML='&#128233; Send All Barcodes';
+    if(r.error){
+      status.innerHTML='<span style="color:var(--red)">Error: '+esc(r.error)+'</span>';
+    }else{
+      status.innerHTML='<span style="color:var(--green)">&#10004; Sent '+r.sent+' emails, '+r.failed+' failed</span>';
+      if(r.results&&r.results.length){
+        results.style.display='block';
+        var html='<div style="max-height:150px;overflow-y:auto;font-size:.75rem">';
+        for(var i=0;i<r.results.length;i++){
+          var res=r.results[i];
+          html+='<div style="padding:4px 0;border-bottom:1px solid var(--border)"><span style="color:'+(res.status==='sent'?'var(--green)':'var(--red)')+'">'+(res.status==='sent'?'&#10004;':'&#10006;')+'</span> '+esc(res.name)+' &lt;'+esc(res.email)+'&gt;</div>';
+        }
+        html+='</div>';
+        results.innerHTML=html;
+      }
+      loadRsvp();
+    }
+  }).catch(function(err){
+    btn.disabled=false;btn.innerHTML='&#128233; Send All Barcodes';
+    status.innerHTML='<span style="color:var(--red)">Connection error</span>';
   });
 }
 
@@ -619,8 +669,8 @@ function delRsvp(id){if(!confirm('Delete this RSVP?'))return;api('DELETE','/admi
 function exportRsvp(){
   api('GET','/admin/rsvp').then(function(r){
     if(!r||!r.rsvps)return;
-    var rows=[['Name','Email','Phone','Attendance','Guest Of','Party Size','Dietary','Message','Date']];
-    for(var i=0;i<r.rsvps.length;i++){var e=r.rsvps[i];rows.push([e.name,e.email||'',e.phone||'',e.attendance,e.guest_of||'',e.party_size||1,e.dietary||'',e.message||'',e.created_at]);}
+    var rows=[['Name','Email','Phone','Attendance','Guest Of','Barcode','Party Size','Dietary','Message','Email Sent','Date']];
+    for(var i=0;i<r.rsvps.length;i++){var e=r.rsvps[i];rows.push([e.name,e.email||'',e.phone||'',e.attendance,e.guest_of||'',e.barcode||'',e.party_size||1,e.dietary||'',e.message||'',e.barcode_sent?'Yes':'No',e.created_at]);}
     csvDl(rows,'rsvp_export_'+new Date().toISOString().slice(0,10)+'.csv');toast('&#9989; RSVP data exported');
   });
 }

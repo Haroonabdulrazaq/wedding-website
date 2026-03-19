@@ -43,6 +43,8 @@ db.exec(`
     party_size INTEGER DEFAULT 1,
     dietary    TEXT,
     message    TEXT,
+    barcode    TEXT UNIQUE,
+    barcode_sent INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -87,6 +89,41 @@ try {
   console.log('Migration check:', err.message);
 }
 
+// Migration: Add barcode and barcode_sent columns to existing rsvp table
+try {
+  const columns = db.prepare("PRAGMA table_info(rsvp)").all();
+  const hasBarcode = columns.some(col => col.name === 'barcode');
+  const hasBarcodeSent = columns.some(col => col.name === 'barcode_sent');
+  
+  if (!hasBarcode) {
+    db.exec('ALTER TABLE rsvp ADD COLUMN barcode TEXT UNIQUE');
+    console.log('Migration: Added barcode column to rsvp table');
+  }
+  if (!hasBarcodeSent) {
+    db.exec('ALTER TABLE rsvp ADD COLUMN barcode_sent INTEGER DEFAULT 0');
+    console.log('Migration: Added barcode_sent column to rsvp table');
+  }
+  
+  // Generate barcodes for existing RSVPs that don't have one
+  const crypto = require('crypto');
+  const rsvpsWithoutBarcode = db.prepare('SELECT id FROM rsvp WHERE barcode IS NULL').all();
+  for (const rsvp of rsvpsWithoutBarcode) {
+    const barcode = 'HL2026-' + crypto.randomBytes(6).toString('hex').toUpperCase();
+    try {
+      db.prepare('UPDATE rsvp SET barcode = ? WHERE id = ?').run(barcode, rsvp.id);
+    } catch (e) {
+      // If duplicate, generate another
+      const newBarcode = 'HL2026-' + crypto.randomBytes(8).toString('hex').toUpperCase();
+      db.prepare('UPDATE rsvp SET barcode = ? WHERE id = ?').run(newBarcode, rsvp.id);
+    }
+  }
+  if (rsvpsWithoutBarcode.length > 0) {
+    console.log(`Migration: Generated barcodes for ${rsvpsWithoutBarcode.length} existing RSVPs`);
+  }
+} catch (err) {
+  console.log('Migration check:', err.message);
+}
+
 // Seed defaults
 const seedSettings = [
   ['meet_link',       process.env.MEET_LINK || ''],
@@ -125,11 +162,15 @@ const Q = {
   gbResetAll: ()           => db.prepare('DELETE FROM guestbook').run(),
 
   // RSVP
-  rsvpAdd:   (n,e,p,att,guest,sz,diet,msg) => db.prepare('INSERT INTO rsvp(name,email,phone,attendance,guest_of,party_size,dietary,message) VALUES(?,?,?,?,?,?,?,?)').run(n,e,p,att,guest,sz,diet,msg),
+  rsvpAdd:   (n,e,p,att,guest,sz,diet,msg,barcode) => db.prepare('INSERT INTO rsvp(name,email,phone,attendance,guest_of,party_size,dietary,message,barcode) VALUES(?,?,?,?,?,?,?,?,?)').run(n,e,p,att,guest,sz,diet,msg,barcode),
   rsvpAll:   ()  => db.prepare('SELECT * FROM rsvp ORDER BY created_at DESC').all(),
   rsvpStats: ()  => db.prepare("SELECT attendance, COUNT(*) as cnt, SUM(party_size) as ppl FROM rsvp GROUP BY attendance").all(),
   rsvpCount: ()  => db.prepare('SELECT COUNT(*) as n FROM rsvp').get().n,
   rsvpDel:   id  => db.prepare('DELETE FROM rsvp WHERE id=?').run(id),
+  rsvpGetById: id => db.prepare('SELECT * FROM rsvp WHERE id=?').get(id),
+  rsvpGetByBarcode: barcode => db.prepare('SELECT * FROM rsvp WHERE barcode=?').get(barcode),
+  rsvpMarkBarcodeSent: id => db.prepare('UPDATE rsvp SET barcode_sent=1 WHERE id=?').run(id),
+  rsvpWithEmails: () => db.prepare("SELECT * FROM rsvp WHERE email IS NOT NULL AND email != ''").all(),
   
   rsvpFindByName: (name) => db.prepare('SELECT id FROM rsvp WHERE LOWER(name) = LOWER(?)').get(name),
   rsvpResetAll: () => db.prepare('DELETE FROM rsvp').run(),
