@@ -415,9 +415,19 @@ app.post('/admin/send-barcodes', requireAdmin, async (req, res) => {
                         rsvp.guest_of === 'groom' ? "Groom's Guest (Lukman)" : 
                         rsvp.guest_of === 'both' ? "Guest of Both" : "";
 
-    // Generate QR code as PNG buffer for email attachment
+    // Generate QR code as data URL (more reliable for email clients)
+    let qrCodeDataUrl = '';
     let qrCodeBuffer = null;
     try {
+      // Generate as data URL
+      qrCodeDataUrl = await QRCode.toDataURL(rsvp.barcode, {
+        width: 300,
+        margin: 2,
+        color: { dark: '#0C1A0E', light: '#FFFFFF' },
+        errorCorrectionLevel: 'M'
+      });
+      
+      // Also generate as buffer for CID attachment (fallback)
       qrCodeBuffer = await QRCode.toBuffer(rsvp.barcode, {
         type: 'png',
         width: 300,
@@ -425,8 +435,10 @@ app.post('/admin/send-barcodes', requireAdmin, async (req, res) => {
         color: { dark: '#0C1A0E', light: '#FFFFFF' },
         errorCorrectionLevel: 'M'
       });
+      
+      console.log(`QR generated for ${rsvp.barcode}: dataUrl length=${qrCodeDataUrl.length}, buffer length=${qrCodeBuffer.length}`);
     } catch (e) {
-      console.error('Error generating QR code buffer:', e);
+      console.error('Error generating QR code:', e);
       failed++;
       results.push({ email: rsvp.email, name: rsvp.name, status: 'failed', error: 'QR generation failed' });
       continue;
@@ -440,7 +452,7 @@ app.post('/admin/send-barcodes', requireAdmin, async (req, res) => {
         {
           filename: `qrcode-${rsvp.barcode}.png`,
           content: qrCodeBuffer,
-          cid: 'qrcode@hawau-lukman.wedding' // Content-ID for inline image
+          cid: 'qrcode123' // Simple CID
         }
       ],
       html: `
@@ -455,7 +467,7 @@ app.post('/admin/send-barcodes', requireAdmin, async (req, res) => {
             <p style="color: #FDFAF2; line-height: 1.8;">Assalamu alaikum! Thank you for your RSVP. Your unique QR code for the wedding celebration is below:</p>
             
             <div style="text-align: center; padding: 25px; background: #fff; border-radius: 8px; margin: 20px 0;">
-              <img src="cid:qrcode@hawau-lukman.wedding" alt="QR Code" style="width: 200px; height: 200px; display: block; margin: 0 auto;" />
+              <img src="cid:qrcode123" alt="QR Code" style="width: 200px; height: 200px; display: block; margin: 0 auto;" />
               <p style="font-family: 'Courier New', monospace; font-size: 1.3rem; font-weight: bold; color: #0C1A0E; margin: 15px 0 5px; letter-spacing: 2px;">${rsvp.barcode}</p>
               <p style="color: #666; font-size: 0.75rem;">Scan this QR code at the venue entrance</p>
             </div>
@@ -512,6 +524,16 @@ app.post('/admin/send-barcodes', requireAdmin, async (req, res) => {
 app.get('/admin/rsvp/barcodes', requireAdmin, (req, res) => {
   const rsvps = Q.rsvpAll();
   res.json({ rsvps });
+});
+
+// Reset barcode_sent flags to allow resending emails
+app.post('/admin/reset-barcode-sent', requireAdmin, (req, res) => {
+  try {
+    const result = Q.resetBarcodeSent();
+    res.json({ ok: true, reset: result.changes });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to reset barcode_sent flags' });
+  }
 });
 
 app.get('/admin/guestbook',             requireAdmin, (req, res) => res.json({ entries: Q.gbAll() }));

@@ -174,6 +174,7 @@ const Q = {
   
   rsvpFindByName: (name) => db.prepare('SELECT id FROM rsvp WHERE LOWER(name) = LOWER(?)').get(name),
   rsvpResetAll: () => db.prepare('DELETE FROM rsvp').run(),
+  resetBarcodeSent: () => db.prepare('UPDATE rsvp SET barcode_sent = 0').run(),
 
   // Blessings
   blessAdd:  (name,loc,msg) => db.prepare('INSERT INTO blessings(name,location,message) VALUES(?,?,?)').run(name,loc,msg),
