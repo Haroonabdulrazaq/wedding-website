@@ -31,13 +31,13 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc:  ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'cdn.socket.io', 'cdnjs.cloudflare.com'],
+      scriptSrc:  ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'cdn.socket.io', 'cdnjs.cloudflare.com', 'https://unpkg.com'],
       styleSrc:   ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://fonts.gstatic.com'],
       fontSrc:    ["'self'", 'https://fonts.gstatic.com'],
       frameSrc:   ["'self'", 'https://meet.google.com', 'https://*.google.com', 'https://www.youtube.com', 'https://youtube.com', 'https://www.youtube-nocookie.com', 'https://www.facebook.com', 'https://player.vimeo.com', 'https://vimeo.com', 'https://zoom.us', 'https://*.zoom.us', 'https://www.dailymotion.com', 'https://player.twitch.tv', 'https://twitch.tv'],
       imgSrc:     ["'self'", 'data:', 'blob:', '*'],
       connectSrc: ["'self'", 'ws:', 'wss:', '*'],
-      mediaSrc:   ["'self'", '*'],
+      mediaSrc:   ["'self'", 'blob:', '*'],
       scriptSrcAttr: ["'unsafe-inline'"],
     }
   },
@@ -53,11 +53,16 @@ app.use(helmet({
   frameguard: { action: 'sameorigin' }
 }));
 
-// Additional security headers
+// Additional security headers - Allow camera for verify page
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  // Allow camera access for the verify page
+  if (req.path === '/verify') {
+    res.setHeader('Permissions-Policy', 'camera=(self), microphone=(), geolocation=()');
+  } else {
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  }
   next();
 });
 
