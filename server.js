@@ -364,12 +364,13 @@ app.post('/admin/settings', requireAdmin, handleSettings);
 app.get('/admin/rsvp',          requireAdmin, (req, res) => res.json({ rsvps: Q.rsvpAll(), stats: Q.rsvpStats() }));
 app.delete('/admin/rsvp/:id',   requireAdmin, (req, res) => { Q.rsvpDel(+req.params.id); res.json({ ok: true }); });
 
-// Send barcode emails to all guests with emails
+// Send barcode emails to physical attendees only
 app.post('/admin/send-barcodes', requireAdmin, async (req, res) => {
-  const rsvpsWithEmails = Q.rsvpWithEmails();
+  // Only send to guests who are attending physically (in person)
+  const rsvpsWithEmails = Q.rsvpPhysicalWithEmails();
   
   if (rsvpsWithEmails.length === 0) {
-    return res.json({ ok: true, sent: 0, message: 'No guests with email addresses found' });
+    return res.json({ ok: true, sent: 0, message: 'No physical attendees with email addresses found. Barcodes are only sent to guests attending in person.' });
   }
 
   // Email configuration - uses environment variables

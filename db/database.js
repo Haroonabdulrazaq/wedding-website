@@ -171,6 +171,7 @@ const Q = {
   rsvpGetByBarcode: barcode => db.prepare('SELECT * FROM rsvp WHERE barcode=?').get(barcode),
   rsvpMarkBarcodeSent: id => db.prepare('UPDATE rsvp SET barcode_sent=1 WHERE id=?').run(id),
   rsvpWithEmails: () => db.prepare("SELECT * FROM rsvp WHERE email IS NOT NULL AND email != ''").all(),
+  rsvpPhysicalWithEmails: () => db.prepare("SELECT * FROM rsvp WHERE email IS NOT NULL AND email != '' AND attendance = 'physical'").all(),
   
   rsvpFindByName: (name) => db.prepare('SELECT id FROM rsvp WHERE LOWER(name) = LOWER(?)').get(name),
   rsvpResetAll: () => db.prepare('DELETE FROM rsvp').run(),
