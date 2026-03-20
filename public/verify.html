@@ -123,6 +123,45 @@
     
     .error-msg{background:rgba(224,80,80,.1);border:1px solid rgba(224,80,80,.3);color:var(--red);padding:12px;border-radius:var(--r);font-size:.8rem;text-align:center}
     
+    /* Guest Details Popup Modal */
+    .guest-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:1000;animation:fadeIn .3s ease;padding:16px}
+    .guest-modal.show{display:flex}
+    .guest-modal-content{background:var(--bg);border:2px solid var(--green);border-radius:16px;max-width:400px;width:100%;max-height:90vh;overflow-y:auto;animation:popIn .3s ease}
+    @keyframes popIn{from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:scale(1)}}
+    
+    .modal-header{padding:20px;background:linear-gradient(135deg,rgba(60,179,113,.2),rgba(60,179,113,.1));border-bottom:1px solid rgba(60,179,113,.3);text-align:center}
+    .modal-valid-icon{width:60px;height:60px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:2rem;color:#fff;box-shadow:0 4px 20px rgba(60,179,113,.4)}
+    .modal-valid-text{font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:4px}
+    .modal-guest-name{font-family:'Great Vibes',cursive;font-size:2rem;color:var(--gold3);line-height:1.2}
+    
+    .modal-body{padding:20px}
+    .modal-info-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
+    .modal-info-row:last-child{border-bottom:none}
+    .modal-label{font-size:.65rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+    .modal-value{font-size:.9rem;color:var(--text);text-align:right;font-weight:500}
+    .modal-barcode{font-family:monospace;background:rgba(196,158,80,.1);padding:4px 8px;border-radius:4px;color:var(--gold3)}
+    
+    .modal-badge{font-size:.6rem;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:20px;font-weight:600}
+    .modal-badge.physical{background:rgba(196,158,80,.15);color:var(--gold3);border:1px solid rgba(196,158,80,.3)}
+    .modal-badge.virtual{background:rgba(61,212,200,.15);color:var(--teal3);border:1px solid rgba(61,212,200,.3)}
+    .modal-badge.regrets{background:rgba(150,150,150,.15);color:var(--muted);border:1px solid rgba(150,150,150,.3)}
+    .modal-badge.bride{background:rgba(255,105,180,.15);color:#ffb6c1;border:1px solid rgba(255,105,180,.3)}
+    .modal-badge.groom{background:rgba(100,149,237,.15);color:#87ceeb;border:1px solid rgba(100,149,237,.3)}
+    .modal-badge.both{background:rgba(180,140,60,.15);color:var(--gold3);border:1px solid rgba(180,140,60,.3)}
+    
+    .modal-footer{padding:16px 20px 20px;display:flex;gap:10px}
+    .modal-btn{flex:1;padding:14px;border:none;border-radius:var(--r);font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s}
+    .modal-btn-primary{background:var(--green);color:#fff}
+    .modal-btn-primary:hover{filter:brightness(1.1)}
+    .modal-btn-secondary{background:rgba(255,255,255,.1);color:var(--text);border:1px solid var(--border)}
+    .modal-btn-secondary:hover{background:rgba(255,255,255,.15)}
+    
+    /* Invalid Modal */
+    .guest-modal.invalid .guest-modal-content{border-color:var(--red)}
+    .guest-modal.invalid .modal-header{background:linear-gradient(135deg,rgba(224,80,80,.2),rgba(224,80,80,.1));border-bottom-color:rgba(224,80,80,.3)}
+    .guest-modal.invalid .modal-valid-icon{background:var(--red)}
+    .guest-modal.invalid .modal-valid-text{color:var(--red)}
+    
     /* Scan Success Overlay */
     .scan-success{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(60,179,113,.95);display:none;align-items:center;justify-content:center;z-index:1000;animation:fadeIn .2s ease}
     .scan-success.show{display:flex}
@@ -184,6 +223,24 @@
     
     <div class="result" id="resultCard">
       <!-- Results will be inserted here -->
+    </div>
+    
+    <!-- Guest Details Modal -->
+    <div class="guest-modal" id="guestModal">
+      <div class="guest-modal-content">
+        <div class="modal-header">
+          <div class="modal-valid-icon" id="modalIcon">✓</div>
+          <div class="modal-valid-text" id="modalStatusText">Valid Guest</div>
+          <div class="modal-guest-name" id="modalGuestName">Guest Name</div>
+        </div>
+        <div class="modal-body" id="modalBody">
+          <!-- Guest details will be inserted here -->
+        </div>
+        <div class="modal-footer">
+          <button class="modal-btn modal-btn-secondary" onclick="closeModal()">Close</button>
+          <button class="modal-btn modal-btn-primary" id="modalActionBtn" onclick="scanAnother()">Scan Another</button>
+        </div>
+      </div>
     </div>
     
     <!-- Scan Success Overlay -->
@@ -423,15 +480,13 @@
       // Check if user entered anything after the prefix
       var barcodeSuffix = barcode.replace('HL2026-', '');
       if (!scannedBarcode && !barcodeSuffix) {
-        resultCard.className = 'result show';
-        resultCard.innerHTML = '<div class="error-msg">Please enter the barcode suffix (characters after HL2026-)</div>';
+        showErrorModal('Missing Barcode', 'Please enter the barcode suffix (characters after HL2026-)');
         return;
       }
       
       // Check if barcode starts with HL2026-
       if (!barcode.startsWith('HL2026-')) {
-        resultCard.className = 'result show';
-        resultCard.innerHTML = '<div class="error-msg">Invalid barcode format. Barcode must start with HL2026-</div>';
+        showErrorModal('Invalid Format', 'Barcode must start with HL2026-');
         resumeScanner();
         return;
       }
@@ -447,57 +502,13 @@
           btnText.textContent = 'Verify Guest';
           
           if (data.valid) {
-            // Show success overlay only after successful verification
-            if (fromScanner) {
-              var overlay = document.getElementById('scanSuccess');
-              overlay.classList.add('show');
-              setTimeout(function() {
-                overlay.classList.remove('show');
-              }, 1000);
-            }
-            
-            var guest = data.guest;
-            var attendanceClass = guest.attendance === 'physical' ? 'physical' : guest.attendance === 'virtual' ? 'virtual' : 'regrets';
-            var attendanceText = guest.attendance === 'physical' ? 'In Person' : guest.attendance === 'virtual' ? 'Virtual' : 'Regrets';
-            
-            var guestOfHtml = '';
-            if (guest.guest_of) {
-              var guestOfClass = guest.guest_of;
-              var guestOfText = guest.guest_of === 'bride' ? "Bride's Guest" : guest.guest_of === 'groom' ? "Groom's Guest" : 'Both';
-              guestOfHtml = '<div class="guest-row"><span class="guest-label">Guest Of</span><span class="guest-value"><span class="guest-of-badge ' + guestOfClass + '">' + guestOfText + '</span></span></div>';
-            }
-            
-            var dietaryHtml = guest.dietary ? '<div class="guest-row"><span class="guest-label">Dietary</span><span class="guest-value">' + escapeHtml(guest.dietary) + '</span></div>' : '';
-            
-            resultCard.className = 'result show';
-            resultCard.innerHTML = 
-              '<div class="valid-badge valid">✓ Valid Guest</div>' +
-              '<div class="card-title">Guest Details</div>' +
-              '<div class="guest-info">' +
-                '<div class="guest-row"><span class="guest-label">Name</span><span class="guest-value"><strong>' + escapeHtml(guest.name) + '</strong></span></div>' +
-                '<div class="guest-row"><span class="guest-label">Barcode</span><span class="guest-value" style="font-family:monospace;font-size:.8rem">' + barcode + '</span></div>' +
-                '<div class="guest-row"><span class="guest-label">Attendance</span><span class="guest-value"><span class="attendance-badge ' + attendanceClass + '">' + attendanceText + '</span></span></div>' +
-                guestOfHtml +
-                '<div class="guest-row"><span class="guest-label">Party Size</span><span class="guest-value">' + guest.party_size + ' guest' + (guest.party_size > 1 ? 's' : '') + '</span></div>' +
-                dietaryHtml +
-                '<div class="guest-row"><span class="guest-label">Email</span><span class="guest-value">' + (guest.email || '—') + '</span></div>' +
-                '<div class="guest-row"><span class="guest-label">Phone</span><span class="guest-value">' + (guest.phone || '—') + '</span></div>' +
-                '<div class="guest-row"><span class="guest-label">Registered</span><span class="guest-value">' + new Date(guest.registered_at).toLocaleDateString() + '</span></div>' +
-              '</div>' +
-              '<div class="btn-row" style="margin-top:16px">' +
-                '<button class="btn btn-secondary" onclick="resetScanner()">Scan Another</button>' +
-              '</div>';
-            
-            addToHistory(guest, barcode);
+            // Show guest details popup modal
+            showGuestModal(data.guest, barcode, fromScanner);
+            addToHistory(data.guest, barcode);
             document.getElementById('barcodeInput').value = '';
           } else {
-            resultCard.className = 'result show';
-            resultCard.innerHTML = 
-              '<div class="valid-badge invalid">✗ Invalid</div>' +
-              '<div class="error-msg">' + escapeHtml(data.error) + '</div>' +
-              '<div class="btn-row" style="margin-top:16px">' +
-                '<button class="btn btn-secondary" onclick="resetScanner()">Try Again</button>' +
-              '</div>';
+            // Show error modal
+            showErrorModal('Invalid Barcode', data.error);
             resumeScanner();
           }
         })
@@ -505,14 +516,101 @@
           console.error('API error:', err);
           btn.disabled = false;
           btnText.textContent = 'Verify Guest';
-          resultCard.className = 'result show';
-          resultCard.innerHTML = 
-            '<div class="error-msg">Connection error. Please try again.</div>' +
-            '<div class="btn-row" style="margin-top:16px">' +
-              '<button class="btn btn-secondary" onclick="resetScanner()">Try Again</button>' +
-            '</div>';
+          showErrorModal('Connection Error', 'Unable to verify barcode. Please try again.');
           resumeScanner();
         });
+    }
+    
+    function showGuestModal(guest, barcode, fromScanner) {
+      var modal = document.getElementById('guestModal');
+      var modalIcon = document.getElementById('modalIcon');
+      var modalStatusText = document.getElementById('modalStatusText');
+      var modalGuestName = document.getElementById('modalGuestName');
+      var modalBody = document.getElementById('modalBody');
+      var actionBtn = document.getElementById('modalActionBtn');
+      
+      // Set header
+      modal.classList.remove('invalid');
+      modalIcon.textContent = '✓';
+      modalStatusText.textContent = 'Valid Guest';
+      modalGuestName.textContent = guest.name;
+      
+      // Build attendance badge
+      var attendanceClass = guest.attendance === 'physical' ? 'physical' : guest.attendance === 'virtual' ? 'virtual' : 'regrets';
+      var attendanceText = guest.attendance === 'physical' ? 'In Person' : guest.attendance === 'virtual' ? 'Virtual' : 'Regrets';
+      
+      // Build guest of badge
+      var guestOfHtml = '';
+      if (guest.guest_of) {
+        var guestOfClass = guest.guest_of;
+        var guestOfText = guest.guest_of === 'bride' ? "Bride's Guest" : guest.guest_of === 'groom' ? "Groom's Guest" : 'Both';
+        guestOfHtml = '<div class="modal-info-row"><span class="modal-label">Guest Of</span><span class="modal-value"><span class="modal-badge ' + guestOfClass + '">' + guestOfText + '</span></span></div>';
+      }
+      
+      // Build dietary info
+      var dietaryHtml = guest.dietary ? '<div class="modal-info-row"><span class="modal-label">Dietary</span><span class="modal-value">' + escapeHtml(guest.dietary) + '</span></div>' : '';
+      
+      // Build modal body
+      modalBody.innerHTML = 
+        '<div class="modal-info-row"><span class="modal-label">Barcode</span><span class="modal-value modal-barcode">' + barcode + '</span></div>' +
+        '<div class="modal-info-row"><span class="modal-label">Attendance</span><span class="modal-value"><span class="modal-badge ' + attendanceClass + '">' + attendanceText + '</span></span></div>' +
+        guestOfHtml +
+        '<div class="modal-info-row"><span class="modal-label">Party Size</span><span class="modal-value">' + guest.party_size + ' guest' + (guest.party_size > 1 ? 's' : '') + '</span></div>' +
+        dietaryHtml +
+        '<div class="modal-info-row"><span class="modal-label">Email</span><span class="modal-value">' + (guest.email || '—') + '</span></div>' +
+        '<div class="modal-info-row"><span class="modal-label">Phone</span><span class="modal-value">' + (guest.phone || '—') + '</span></div>' +
+        '<div class="modal-info-row"><span class="modal-label">Registered</span><span class="modal-value">' + new Date(guest.registered_at).toLocaleDateString() + '</span></div>';
+      
+      // Update action button text
+      actionBtn.textContent = fromScanner ? 'Scan Another' : 'Verify Another';
+      
+      // Show modal
+      modal.classList.add('show');
+      
+      // Also update result card (hidden behind modal)
+      var resultCard = document.getElementById('resultCard');
+      resultCard.className = 'result show';
+      resultCard.innerHTML = '<div class="valid-badge valid">✓ Valid Guest - ' + escapeHtml(guest.name) + '</div>';
+    }
+    
+    function showErrorModal(title, message) {
+      var modal = document.getElementById('guestModal');
+      var modalIcon = document.getElementById('modalIcon');
+      var modalStatusText = document.getElementById('modalStatusText');
+      var modalGuestName = document.getElementById('modalGuestName');
+      var modalBody = document.getElementById('modalBody');
+      var actionBtn = document.getElementById('modalActionBtn');
+      
+      // Set header for error
+      modal.classList.add('invalid');
+      modalIcon.textContent = '✗';
+      modalStatusText.textContent = title;
+      modalGuestName.textContent = '';
+      
+      // Build modal body
+      modalBody.innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--muted)">' + escapeHtml(message) + '</div>';
+      
+      // Update action button
+      actionBtn.textContent = 'Try Again';
+      actionBtn.onclick = function() { closeModal(); resetScanner(); };
+      
+      // Show modal
+      modal.classList.add('show');
+    }
+    
+    function closeModal() {
+      var modal = document.getElementById('guestModal');
+      modal.classList.remove('show');
+      modal.classList.remove('invalid');
+      
+      // Reset action button
+      var actionBtn = document.getElementById('modalActionBtn');
+      actionBtn.onclick = scanAnother;
+    }
+    
+    function scanAnother() {
+      closeModal();
+      resetScanner();
     }
     
     function resumeScanner() {
