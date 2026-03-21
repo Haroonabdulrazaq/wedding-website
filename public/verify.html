@@ -162,6 +162,17 @@
     .guest-modal.invalid .modal-valid-icon{background:var(--red)}
     .guest-modal.invalid .modal-valid-text{color:var(--red)}
     
+    /* Warning Modal (Already Scanned) */
+    .guest-modal.warning .guest-modal-content{border-color:#F59E0B}
+    .guest-modal.warning .modal-header{background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(245,158,11,.1));border-bottom-color:rgba(245,158,11,.3)}
+    .guest-modal.warning .modal-valid-icon{background:#F59E0B}
+    .guest-modal.warning .modal-valid-text{color:#F59E0B}
+    
+    .scanned-warning{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:var(--r);padding:12px;margin-bottom:12px}
+    .scanned-warning .modal-label{color:#F59E0B}
+    
+    .valid-badge.warning{background:rgba(245,158,11,.15);color:#F59E0B;border:1px solid rgba(245,158,11,.3)}
+    
     /* Scan Success Overlay */
     .scan-success{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(60,179,113,.95);display:none;align-items:center;justify-content:center;z-index:1000;animation:fadeIn .2s ease}
     .scan-success.show{display:flex}
@@ -503,7 +514,7 @@
           
           if (data.valid) {
             // Show guest details popup modal
-            showGuestModal(data.guest, barcode, fromScanner);
+            showGuestModal(data.guest, barcode, fromScanner, data.alreadyScanned, data.scannedAt);
             addToHistory(data.guest, barcode);
             document.getElementById('barcodeInput').value = '';
           } else {
@@ -521,7 +532,7 @@
         });
     }
     
-    function showGuestModal(guest, barcode, fromScanner) {
+    function showGuestModal(guest, barcode, fromScanner, alreadyScanned, scannedAt) {
       var modal = document.getElementById('guestModal');
       var modalIcon = document.getElementById('modalIcon');
       var modalStatusText = document.getElementById('modalStatusText');
@@ -529,11 +540,20 @@
       var modalBody = document.getElementById('modalBody');
       var actionBtn = document.getElementById('modalActionBtn');
       
-      // Set header
+      // Set header - show warning if already scanned
       modal.classList.remove('invalid');
-      modalIcon.textContent = '✓';
-      modalStatusText.textContent = 'Valid Guest';
-      modalGuestName.textContent = guest.name;
+      modal.classList.remove('warning');
+      
+      if (alreadyScanned) {
+        modal.classList.add('warning');
+        modalIcon.textContent = '⚠';
+        modalStatusText.textContent = 'Already Checked In';
+        modalGuestName.textContent = guest.name;
+      } else {
+        modalIcon.textContent = '✓';
+        modalStatusText.textContent = 'Checked In';
+        modalGuestName.textContent = guest.name;
+      }
       
       // Build attendance badge
       var attendanceClass = guest.attendance === 'physical' ? 'physical' : guest.attendance === 'virtual' ? 'virtual' : 'regrets';
@@ -550,8 +570,16 @@
       // Build dietary info
       var dietaryHtml = guest.dietary ? '<div class="modal-info-row"><span class="modal-label">Dietary</span><span class="modal-value">' + escapeHtml(guest.dietary) + '</span></div>' : '';
       
+      // Build scanned info if already scanned
+      var scannedHtml = '';
+      if (alreadyScanned && scannedAt) {
+        var scannedDate = new Date(scannedAt);
+        scannedHtml = '<div class="modal-info-row scanned-warning"><span class="modal-label">⚠ Previous Scan</span><span class="modal-value">' + scannedDate.toLocaleString() + '</span></div>';
+      }
+      
       // Build modal body
       modalBody.innerHTML = 
+        scannedHtml +
         '<div class="modal-info-row"><span class="modal-label">Barcode</span><span class="modal-value modal-barcode">' + barcode + '</span></div>' +
         '<div class="modal-info-row"><span class="modal-label">Attendance</span><span class="modal-value"><span class="modal-badge ' + attendanceClass + '">' + attendanceText + '</span></span></div>' +
         guestOfHtml +
@@ -570,7 +598,11 @@
       // Also update result card (hidden behind modal)
       var resultCard = document.getElementById('resultCard');
       resultCard.className = 'result show';
-      resultCard.innerHTML = '<div class="valid-badge valid">✓ Valid Guest - ' + escapeHtml(guest.name) + '</div>';
+      if (alreadyScanned) {
+        resultCard.innerHTML = '<div class="valid-badge warning">⚠ Already Scanned - ' + escapeHtml(guest.name) + '</div>';
+      } else {
+        resultCard.innerHTML = '<div class="valid-badge valid">✓ Checked In - ' + escapeHtml(guest.name) + '</div>';
+      }
     }
     
     function showErrorModal(title, message) {

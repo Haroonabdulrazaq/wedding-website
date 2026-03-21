@@ -124,6 +124,19 @@ try {
   console.log('Migration check:', err.message);
 }
 
+// Migration: Add scanned_at column to track when barcode was scanned
+try {
+  const columns = db.prepare("PRAGMA table_info(rsvp)").all();
+  const hasScannedAt = columns.some(col => col.name === 'scanned_at');
+  
+  if (!hasScannedAt) {
+    db.exec('ALTER TABLE rsvp ADD COLUMN scanned_at DATETIME');
+    console.log('Migration: Added scanned_at column to rsvp table');
+  }
+} catch (err) {
+  console.log('Migration check:', err.message);
+}
+
 // Seed defaults
 const seedSettings = [
   ['meet_link',       process.env.MEET_LINK || ''],
@@ -176,6 +189,7 @@ const Q = {
   rsvpFindByName: (name) => db.prepare('SELECT id FROM rsvp WHERE LOWER(name) = LOWER(?)').get(name),
   rsvpResetAll: () => db.prepare('DELETE FROM rsvp').run(),
   resetBarcodeSent: () => db.prepare('UPDATE rsvp SET barcode_sent = 0').run(),
+  rsvpMarkScanned: (id) => db.prepare('UPDATE rsvp SET scanned_at = CURRENT_TIMESTAMP WHERE id = ?').run(id),
 
   // Blessings
   blessAdd:  (name,loc,msg) => db.prepare('INSERT INTO blessings(name,location,message) VALUES(?,?,?)').run(name,loc,msg),

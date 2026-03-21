@@ -261,9 +261,19 @@ app.get('/api/verify/:barcode', (req, res) => {
     return res.status(404).json({ valid: false, error: 'Barcode not found' });
   }
   
-  // Return guest details
+  // Check if already scanned
+  const alreadyScanned = rsvp.scanned_at !== null;
+  
+  // Mark as scanned if this is the first scan
+  if (!alreadyScanned) {
+    Q.rsvpMarkScanned(rsvp.id);
+  }
+  
+  // Return guest details with scan status
   res.json({
     valid: true,
+    alreadyScanned: alreadyScanned,
+    scannedAt: rsvp.scanned_at,
     guest: {
       name: rsvp.name,
       email: rsvp.email,
