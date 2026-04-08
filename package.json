@@ -1,7 +1,7 @@
 {
-  "name": "Rofiah-Yusuf-wedding-stream",
+  "name": "Rofiat-Yusuf-wedding-stream",
   "version": "1.0.0",
-  "description": "Full-stack wedding streaming platform — Rofiah & Yusuf 2026",
+  "description": "Full-stack wedding streaming platform — Rofiat & Yusuf 2026",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

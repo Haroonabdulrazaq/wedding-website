@@ -1,4 +1,4 @@
-# 💍 Rofiah & Yusuf — Wedding Streaming Platform
+# 💍 Rofiat & Yusuf — Wedding Streaming Platform
 
 A complete full-stack wedding streaming website built with Node.js, Express, Socket.io, and SQLite.
 
@@ -178,4 +178,4 @@ wedding-app/
 
 ---
 
-_Made with ❤️ for Rofiah Haroon & Yusuf Salman — 25 April 2026_
+_Made with ❤️ for Rofiat Haroon & Yusuf Salman — 25 April 2026_

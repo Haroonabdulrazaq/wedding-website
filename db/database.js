@@ -156,10 +156,10 @@ const seedSettings = [
     process.env.MEET_LINK || 'https://meet.google.com/yge-habr-hai',
   ],
   ['stream_status', 'waiting'],
-  ['stream_title', 'Rofiah & Yusuf — Wedding Day Live'],
+  ['stream_title', 'Rofiat & Yusuf — Wedding Day Live'],
   [
     'welcome_msg',
-    'Welcome! You are watching the wedding of Rofiah & Yusuf live. 🎉',
+    'Welcome! You are watching the wedding of Rofiat & Yusuf live. 🎉',
   ],
   ['chat_open', '1'],
   ['blessings_open', '1'],

@@ -1,4 +1,4 @@
-// server.js — Rofiah & Yusuf Wedding Stream Server (Fixed & Production-Ready)
+// server.js — Rofiat & Yusuf Wedding Stream Server (Fixed & Production-Ready)
 'use strict';
 require('dotenv').config();
 
@@ -588,13 +588,13 @@ app.post('/admin/send-barcodes', requireAdmin, async (req, res) => {
     console.log(`Sending email to ${rsvp.email} with QR URL: ${qrCodeUrl}`);
 
     const mailOptions = {
-      from: `"Rofiah & Yusuf Wedding" <${emailConfig.user}>`,
+      from: `"Rofiat & Yusuf Wedding" <${emailConfig.user}>`,
       to: rsvp.email,
-      subject: 'Your Wedding Invitation Barcode - Rofiah & Yusuf 2026',
+      subject: 'Your Wedding Invitation Barcode - Rofiat & Yusuf 2026',
       html: `
         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #0C1A0E; border-radius: 12px; border: 1px solid #B8922C;">
           <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="font-family: 'Great Vibes', cursive, serif; color: #EFC060; font-size: 2.5rem; margin: 0;">Rofiah & Yusuf</h1>
+            <h1 style="font-family: 'Great Vibes', cursive, serif; color: #EFC060; font-size: 2.5rem; margin: 0;">Rofiat & Yusuf</h1>
             <p style="color: #3DD4C8; font-size: 0.9rem; letter-spacing: 2px;">WEDDING CELEBRATION • 25 APRIL 2026</p>
           </div>
           
@@ -1080,8 +1080,8 @@ async function sendScheduledEmails(emailNum) {
     process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
   const isFirstEmail = emailNum === 1;
   const subject = isFirstEmail
-    ? 'Your Wedding Invitation Barcode - Rofiah & Yusuf 2026'
-    : 'Reminder: Your Wedding Barcode - Rofiah & Yusuf 2026 (Tomorrow!)';
+    ? 'Your Wedding Invitation Barcode - Rofiat & Yusuf 2026'
+    : 'Reminder: Your Wedding Barcode - Rofiat & Yusuf 2026 (Tomorrow!)';
 
   for (const rsvp of rsvpsWithEmails) {
     // For first email, skip if already sent
@@ -1100,13 +1100,13 @@ async function sendScheduledEmails(emailNum) {
     const qrCodeUrl = `${serverUrl}/api/qrcode/${rsvp.barcode}`;
 
     const mailOptions = {
-      from: `"Rofiah & Yusuf Wedding" <${emailConfig.user}>`,
+      from: `"Rofiat & Yusuf Wedding" <${emailConfig.user}>`,
       to: rsvp.email,
       subject: subject,
       html: `
         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #0C1A0E; border-radius: 12px; border: 1px solid #B8922C;">
           <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="font-family: 'Great Vibes', cursive, serif; color: #EFC060; font-size: 2.5rem; margin: 0;">Rofiah & Yusuf</h1>
+            <h1 style="font-family: 'Great Vibes', cursive, serif; color: #EFC060; font-size: 2.5rem; margin: 0;">Rofiat & Yusuf</h1>
             <p style="color: #3DD4C8; font-size: 0.9rem; letter-spacing: 2px;">WEDDING CELEBRATION • 25 APRIL 2026</p>
             ${!isFirstEmail ? '<p style="color: #EFC060; font-size: 1rem; margin-top: 10px;">⏰ REMINDER: Wedding is Tomorrow!</p>' : ''}
           </div>
@@ -1145,7 +1145,7 @@ async function sendScheduledEmails(emailNum) {
           <p style="color: #FDFAF2; text-align: center; line-height: 1.8;">Please present this QR code at the venue entrance. We look forward to celebrating with you!</p>
           
           <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(184,146,44,0.3);">
-            <p style="color: #3DD4C8; font-size: 0.85rem;">#RofiahAndYusuf2026</p>
+            <p style="color: #3DD4C8; font-size: 0.85rem;">#RofiatAndYusuf2026</p>
             <p style="color: rgba(253,250,242,0.5); font-size: 0.75rem;">Questions? Contact: +234 802 319 3526 (Bride) | +234 706 095 7637 (Groom)</p>
           </div>
         </div>
@@ -1210,7 +1210,7 @@ setInterval(async () => {
 //  START
 // ═══════════════════════════════════════════════════
 server.listen(PORT, () => {
-  console.log('\n✨ Rofiah & Yusuf Wedding Stream → http://localhost:' + PORT);
+  console.log('\n✨ Rofiat & Yusuf Wedding Stream → http://localhost:' + PORT);
   console.log('🔐 Admin panel → http://localhost:' + PORT + '/admin');
   console.log('📅 Wedding: 25 April 2026\n');
 
