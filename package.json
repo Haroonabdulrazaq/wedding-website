@@ -1,7 +1,7 @@
 {
-  "name": "hawau-lukman-wedding-stream",
+  "name": "Rofiah-Yusuf-wedding-stream",
   "version": "1.0.0",
-  "description": "Full-stack wedding streaming platform — Hawau & Lukman 2026",
+  "description": "Full-stack wedding streaming platform — Rofiah & Yusuf 2026",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
